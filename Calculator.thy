@@ -77,12 +77,29 @@ definition string_of_int :: "int ⇒ string"
     "string_of_int i =
       (if i < 0 then ''-'' @ string_of_nat (nat (- i)) else string_of_nat (nat i))"
 
+value "string_of_int (-435)"
+
 fun pp :: "session \<Rightarrow> string" where 
 "pp GetResult = ''.getResult()''" |
 "pp (Clear ses) = ''.clear()'' @ pp ses" |
 "pp (Add i ses) = ''.add('' @ (string_of_int i) @ '')'' @ pp ses" |
 "pp (Sub i ses) = ''.sub('' @ (string_of_int i) @ '')'' @ pp ses" |
 "pp (Mul i ses) = ''.mul('' @ (string_of_int i) @ '')'' @ pp ses" |
-"pp (Divi i ses) = ''.div('' @ (string_of_int i) @ '')'' @ pp ses"
+"pp (Div i ses) = ''.div('' @ (string_of_int i) @ '')'' @ pp ses"
+
+(* value "pp (session Add 5 (Add 4 (GetResult)))" *)
+
+value "pp GetResult"
+
+value "pp (Add 5 (Sub 4 (Div 4 (GetResult))))"
+
+(* boilerplate code *)
+
+definition "boilerPlateAdd = ''def add(self, x, y):⏎return int(x) + int(y)''"
+
+definition "boilerPlate2 = '' ''"
+
+definition finalOutput :: "session \<Rightarrow> string" where 
+"finalOutput ses = boilerPlateAdd @ pp ses @ boilerPlate2"
 
 end
