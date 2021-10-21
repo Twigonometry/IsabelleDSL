@@ -95,11 +95,27 @@ value "pp (Add 5 (Sub 4 (Div 4 (GetResult))))"
 
 (* boilerplate code *)
 
-definition "boilerPlateAdd = ''def add(self, x, y):⏎return int(x) + int(y)''"
+definition "boilerPlateCalc = ''class Calculator''"
 
-definition "boilerPlate2 = '' ''"
+definition "boilerPlateAdd = ''    def add(self, x, y):⏎        self.input = (int(x) + int(y))⏎''"
+
+definition "boilerPlateSub = ''    def sub(self, x, y):⏎        self.input = (int(x) - int(y))⏎''"
+
+definition "boilerPlateMul= ''    def mul(self, x, y):⏎        self.input = (int(x) * int(y))⏎''"
+
+definition "boilerPlateDiv = ''    def div(self, x, y):⏎        self.input = (int(x) / int(y))⏎''"
+
+definition "boilerPlateClear = ''    def clear(self):⏎        self.input = 0⏎''"
+
+definition "boilerPlateInit = ''    def __init__(self):⏎        self.input = 0⏎''"
+
+definition "boilerPlateInitC = ''c = new Calculator()⏎''"
+
+(* definition "sessionPrefix = ''c''" *)
 
 definition finalOutput :: "session \<Rightarrow> string" where 
-"finalOutput ses = boilerPlateAdd @ pp ses @ boilerPlate2"
+"finalOutput ses = boilerPlateCalc @ boilerPlateAdd @ boilerPlateSub @ boilerPlateMul @ boilerPlateDiv @ boilerPlateClear @ boilerPlateInit @ boilerPlateInitC @ ''c'' @ pp ses"
+
+value "finalOutput (Add 5 (Sub 4 (Div 4 (GetResult))))"
 
 end
