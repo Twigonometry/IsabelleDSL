@@ -41,7 +41,7 @@ datatype session = GetResult | Clear session | Add int session | Sub int session
 
 (* todo: write evals in terms of arithmetic funcs? *)
 
-fun eval :: "state ⇒ session ⇒ state" where
+fun eval :: "state => session => state" where
 "eval s GetResult = s" |
 "eval (St i) (Clear ses)  = eval (St 0) ses" |
 "eval (St j) (Add i ses) = eval (add i (St j)) ses" |
@@ -51,7 +51,7 @@ fun eval :: "state ⇒ session ⇒ state" where
 
 (* string functions *)
 
-fun string_of_digit :: "nat ⇒ string"
+fun string_of_digit :: "nat => string"
   where
     "string_of_digit n =
       (if n = 0 then ''0''
@@ -65,21 +65,21 @@ fun string_of_digit :: "nat ⇒ string"
       else if n = 8 then ''8''
       else ''9'')"
  
-fun string_of_nat :: "nat ⇒ string"
+fun string_of_nat :: "nat \<Rightarrow> string"
   where
     "string_of_nat n =
       (if n < 10 then string_of_digit n
       else string_of_nat (n div 10) @ string_of_digit (n mod 10))"
   declare string_of_nat.simps [simp del]
  
-definition string_of_int :: "int ⇒ string"
+definition string_of_int :: "int => string"
   where
     "string_of_int i =
       (if i < 0 then ''-'' @ string_of_nat (nat (- i)) else string_of_nat (nat i))"
 
 value "string_of_int (-435)"
 
-fun pp :: "session \<Rightarrow> string" where 
+fun pp :: "session => string" where 
 "pp GetResult = ''.getResult()''" |
 "pp (Clear ses) = ''.clear()'' @ pp ses" |
 "pp (Add i ses) = ''.add('' @ (string_of_int i) @ '')'' @ pp ses" |
@@ -126,18 +126,20 @@ definition "boilerPlateInitC = ''c = new Calculator()
 
 (* definition "sessionPrefix = ''c''" *)
 
-definition finalOutput :: "session \<Rightarrow> string" where 
+definition finalOutput :: "session => string" where 
 "finalOutput ses = boilerPlateCalc @ boilerPlateAdd @ boilerPlateSub @ boilerPlateMul @ boilerPlateDiv @ boilerPlateClear @ boilerPlateInit @ boilerPlateInitC @ ''c'' @ pp ses"
 
 value "finalOutput (Add 5 (Sub 4 (Div 4 (GetResult))))"
 
 export_code clear getResult add sub mul divi eval in Haskell module_name Calculator file_prefix calculator
 
+
 ML ‹
 val gen_files = Generated_Files.get_files (Proof_Context.theory_of @{context})
 val output_dir = Path.explode "./generatedHaskellFiles/"
-›
+› 
 
 ML ‹map (Generated_Files.write_file output_dir) gen_files›
+
 
 end
