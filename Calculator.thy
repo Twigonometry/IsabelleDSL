@@ -65,7 +65,7 @@ fun string_of_digit :: "nat => string"
       else if n = 8 then ''8''
       else ''9'')"
  
-fun string_of_nat :: "nat \<Rightarrow> string"
+fun string_of_nat :: "nat => string"
   where
     "string_of_nat n =
       (if n < 10 then string_of_digit n
