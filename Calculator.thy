@@ -97,19 +97,32 @@ value "pp (Add 5 (Sub 4 (Div 4 (GetResult))))"
 
 definition "boilerPlateCalc = ''class Calculator''"
 
-definition "boilerPlateAdd = ''    def add(self, x, y):⏎        self.input = (int(x) + int(y))⏎''"
+definition "boilerPlateAdd = ''    def add(self, x, y):
+        self.input = (int(x) + int(y))
+''"
 
-definition "boilerPlateSub = ''    def sub(self, x, y):⏎        self.input = (int(x) - int(y))⏎''"
+definition "boilerPlateSub = ''    def sub(self, x, y):
+        self.input = (int(x) - int(y))
+''"
 
-definition "boilerPlateMul= ''    def mul(self, x, y):⏎        self.input = (int(x) * int(y))⏎''"
+definition "boilerPlateMul= ''    def mul(self, x, y):
+        self.input = (int(x) * int(y))
+''"
 
-definition "boilerPlateDiv = ''    def div(self, x, y):⏎        self.input = (int(x) / int(y))⏎''"
+definition "boilerPlateDiv = ''    def div(self, x, y):
+        self.input = (int(x) / int(y))
+''"
 
-definition "boilerPlateClear = ''    def clear(self):⏎        self.input = 0⏎''"
+definition "boilerPlateClear = ''    def clear(self):
+        self.input = 0
+''"
 
-definition "boilerPlateInit = ''    def __init__(self):⏎        self.input = 0⏎''"
+definition "boilerPlateInit = ''    def __init__(self):
+        self.input = 0
+''"
 
-definition "boilerPlateInitC = ''c = new Calculator()⏎''"
+definition "boilerPlateInitC = ''c = new Calculator()
+''"
 
 (* definition "sessionPrefix = ''c''" *)
 
@@ -117,5 +130,14 @@ definition finalOutput :: "session \<Rightarrow> string" where
 "finalOutput ses = boilerPlateCalc @ boilerPlateAdd @ boilerPlateSub @ boilerPlateMul @ boilerPlateDiv @ boilerPlateClear @ boilerPlateInit @ boilerPlateInitC @ ''c'' @ pp ses"
 
 value "finalOutput (Add 5 (Sub 4 (Div 4 (GetResult))))"
+
+export_code clear getResult add sub mul divi eval in Haskell module_name Calculator file_prefix calculator
+
+ML ‹
+val gen_files = Generated_Files.get_files (Proof_Context.theory_of @{context})
+val output_dir = Path.explode "./generatedHaskellFiles/"
+›
+
+ML ‹map (Generated_Files.write_file output_dir) gen_files›
 
 end
