@@ -134,12 +134,12 @@ value "finalOutput (Add 5 (Sub 4 (Div 4 (GetResult))))"
 export_code clear getResult add sub mul divi eval in Haskell module_name Calculator file_prefix calculator
 
 
-ML ‹
+ML {*
 val gen_files = Generated_Files.get_files (Proof_Context.theory_of @{context})
 val output_dir = Path.explode "./generatedHaskellFiles/"
-› 
+*}
 
-ML ‹map (Generated_Files.write_file output_dir) gen_files›
+ML {* map (Generated_Files.write_file output_dir) gen_files *}
 
 
 end
