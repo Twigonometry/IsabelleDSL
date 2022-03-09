@@ -1,4 +1,4 @@
 session Calculator = HOL +
-  options [document = none]
   theories
     Calculator
+  export_files (in ".") "*:**.prv"
