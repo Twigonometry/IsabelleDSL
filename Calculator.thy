@@ -7,28 +7,33 @@ getInt is destructor *)
 
 datatype state = St (getInt:int)
 
+(* create a wrapper for integers
+to avoid type name conflicts in haskell export *)
+
+datatype number = Nm (getInt:int)
+
 (* calculator functions on state *)
 
 fun clear :: "state => state" where
 "clear (St m) = St 0"
 
-fun getResult :: "state => int" where
-"getResult (St m) = m"
+fun getResult :: "state => number" where
+"getResult (St m) = (Nm m)"
 
 (* basic arithmetic function definitions
 perform an action on a state *)
 
-fun add :: "int => state => state" where
-"add m (St n) = St (m + n)"
+fun add :: "number => state => state" where
+"add (Nm m) (St n) = St (m + n)"
 
-fun sub :: "int => state => state" where
-"sub m (St n) = St (m - n)"
+fun sub :: "number => state => state" where
+"sub (Nm m) (St n) = St (m - n)"
 
-fun mul :: "int => state => state" where
-"mul m (St n) = St (m * n)"
+fun mul :: "number => state => state" where
+"mul (Nm m) (St n) = St (m * n)"
 
-fun divi :: "int => state => state" where
-"divi m (St n) = St (m div n)"
+fun divi :: "number => state => state" where
+"divi (Nm m) (St n) = St (m div n)"
 
 (* 
 model a 'session' (series of commands in python program)
@@ -37,7 +42,7 @@ calculator c = new Calculator(); (this will be boilerplate)
 c.clear().add(2).clear().getResult();
 *)
 
-datatype session = GetResult | Clear session | Add int session | Sub int session | Mul int session | Div int session
+datatype session = GetResult | Clear session | Add number session | Sub number session | Mul number session | Div number session
 
 (* todo: write evals in terms of arithmetic funcs? *)
 
@@ -72,10 +77,10 @@ fun string_of_nat :: "nat => string"
       else string_of_nat (n div 10) @ string_of_digit (n mod 10))"
   declare string_of_nat.simps [simp del]
  
-definition string_of_int :: "int => string"
+definition string_of_int :: "number => string"
   where
-    "string_of_int i =
-      (if i < 0 then ''-'' @ string_of_nat (nat (- i)) else string_of_nat (nat i))"
+    "string_of_int (Nm i) =
+      (if (int i) < 0 then ''-'' @ string_of_nat (nat (- (Nm i))) else string_of_nat (nat (Nm i)))"
 
 fun pp :: "session => string" where 
 "pp GetResult = ''.getResult()''" |
