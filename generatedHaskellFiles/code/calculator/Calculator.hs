@@ -1,8 +1,6 @@
 {-# LANGUAGE EmptyDataDecls, RankNTypes, ScopedTypeVariables #-}
 
-module
-  Calculator(Int, State, Session, add, mul, suba, divi, eval, clear, getResult)
-  where {
+module Calculator(Int, Session, pp) where {
 
 import Prelude ((==), (/=), (<), (<=), (>=), (>), (+), (-), (*), (/), (**),
   (>>=), (>>), (=<<), (&&), (||), (^), (^^), (.), ($), ($!), (++), (!!), Eq,
@@ -11,226 +9,133 @@ import Prelude ((==), (/=), (<), (<=), (>=), (>), (+), (-), (*), (/), (**),
   String, Bool(True, False), Maybe(Nothing, Just));
 import qualified Prelude;
 
+class Ord a where {
+  less_eq :: a -> a -> Bool;
+  less :: a -> a -> Bool;
+};
+
+instance Ord Integer where {
+  less_eq = (\ a b -> a <= b);
+  less = (\ a b -> a < b);
+};
+
+newtype Int = Int_of_integer Integer;
+
+newtype Nat = Nat Integer;
+
 data Num = One | Bit0 Num | Bit1 Num;
-
-data Int = Zero_int | Pos Num | Neg Num;
-
-one_int :: Int;
-one_int = Pos One;
-
-class One a where {
-  one :: a;
-};
-
-instance One Int where {
-  one = one_int;
-};
-
-class Zero a where {
-  zero :: a;
-};
-
-instance Zero Int where {
-  zero = Zero_int;
-};
-
-class (One a, Zero a) => Zero_neq_one a where {
-};
-
-instance Zero_neq_one Int where {
-};
-
-newtype State = St Int;
 
 data Session = GetResult | Clear Session | Add Int Session | Sub Int Session
   | Mul Int Session | Div Int Session;
 
-dup :: Int -> Int;
-dup (Neg n) = Neg (Bit0 n);
-dup (Pos n) = Pos (Bit0 n);
-dup Zero_int = Zero_int;
+integer_of_int :: Int -> Integer;
+integer_of_int (Int_of_integer k) = k;
+
+max :: forall a. (Ord a) => a -> a -> a;
+max a b = (if less_eq a b then b else a);
+
+nat :: Int -> Nat;
+nat k = Nat (max (0 :: Integer) (integer_of_int k));
 
 uminus_int :: Int -> Int;
-uminus_int (Neg m) = Pos m;
-uminus_int (Pos m) = Neg m;
-uminus_int Zero_int = Zero_int;
+uminus_int k = Int_of_integer (negate (integer_of_int k));
 
-plus_num :: Num -> Num -> Num;
-plus_num (Bit1 m) (Bit1 n) = Bit0 (plus_num (plus_num m n) One);
-plus_num (Bit1 m) (Bit0 n) = Bit1 (plus_num m n);
-plus_num (Bit1 m) One = Bit0 (plus_num m One);
-plus_num (Bit0 m) (Bit1 n) = Bit1 (plus_num m n);
-plus_num (Bit0 m) (Bit0 n) = Bit0 (plus_num m n);
-plus_num (Bit0 m) One = Bit1 m;
-plus_num One (Bit1 n) = Bit0 (plus_num n One);
-plus_num One (Bit0 n) = Bit1 n;
-plus_num One One = Bit0 One;
+zero_int :: Int;
+zero_int = Int_of_integer (0 :: Integer);
 
-bitM :: Num -> Num;
-bitM One = One;
-bitM (Bit0 n) = Bit1 (bitM n);
-bitM (Bit1 n) = Bit1 (Bit0 n);
+less_int :: Int -> Int -> Bool;
+less_int k l = integer_of_int k < integer_of_int l;
 
-sub :: Num -> Num -> Int;
-sub (Bit0 m) (Bit1 n) = minus_int (dup (sub m n)) one_int;
-sub (Bit1 m) (Bit0 n) = plus_int (dup (sub m n)) one_int;
-sub (Bit1 m) (Bit1 n) = dup (sub m n);
-sub (Bit0 m) (Bit0 n) = dup (sub m n);
-sub One (Bit1 n) = Neg (Bit0 n);
-sub One (Bit0 n) = Neg (bitM n);
-sub (Bit1 m) One = Pos (Bit0 m);
-sub (Bit0 m) One = Pos (bitM m);
-sub One One = Zero_int;
+apsnd :: forall a b c. (a -> b) -> (c, a) -> (c, b);
+apsnd f (x, y) = (x, f y);
 
-plus_int :: Int -> Int -> Int;
-plus_int (Neg m) (Neg n) = Neg (plus_num m n);
-plus_int (Neg m) (Pos n) = sub n m;
-plus_int (Pos m) (Neg n) = sub m n;
-plus_int (Pos m) (Pos n) = Pos (plus_num m n);
-plus_int Zero_int l = l;
-plus_int k Zero_int = k;
+divmod_integer :: Integer -> Integer -> (Integer, Integer);
+divmod_integer k l =
+  (if k == (0 :: Integer) then ((0 :: Integer), (0 :: Integer))
+    else (if (0 :: Integer) < l
+           then (if (0 :: Integer) < k then divMod (abs k) (abs l)
+                  else (case divMod (abs k) (abs l) of {
+                         (r, s) ->
+                           (if s == (0 :: Integer)
+                             then (negate r, (0 :: Integer))
+                             else (negate r - (1 :: Integer), l - s));
+                       }))
+           else (if l == (0 :: Integer) then ((0 :: Integer), k)
+                  else apsnd negate
+                         (if k < (0 :: Integer) then divMod (abs k) (abs l)
+                           else (case divMod (abs k) (abs l) of {
+                                  (r, s) ->
+                                    (if s == (0 :: Integer)
+                                      then (negate r, (0 :: Integer))
+                                      else (negate r - (1 :: Integer),
+     negate l - s));
+                                })))));
 
-minus_int :: Int -> Int -> Int;
-minus_int (Neg m) (Neg n) = sub n m;
-minus_int (Neg m) (Pos n) = Neg (plus_num m n);
-minus_int (Pos m) (Neg n) = Pos (plus_num m n);
-minus_int (Pos m) (Pos n) = sub m n;
-minus_int Zero_int l = uminus_int l;
-minus_int k Zero_int = k;
+modulo_integer :: Integer -> Integer -> Integer;
+modulo_integer k l = snd (divmod_integer k l);
 
-add :: Int -> State -> State;
-add m (St n) = St (plus_int m n);
+integer_of_nat :: Nat -> Integer;
+integer_of_nat (Nat x) = x;
 
-times_num :: Num -> Num -> Num;
-times_num (Bit1 m) (Bit1 n) =
-  Bit1 (plus_num (plus_num m n) (Bit0 (times_num m n)));
-times_num (Bit1 m) (Bit0 n) = Bit0 (times_num (Bit1 m) n);
-times_num (Bit0 m) (Bit1 n) = Bit0 (times_num m (Bit1 n));
-times_num (Bit0 m) (Bit0 n) = Bit0 (Bit0 (times_num m n));
-times_num One n = n;
-times_num m One = m;
+modulo_nat :: Nat -> Nat -> Nat;
+modulo_nat m n = Nat (modulo_integer (integer_of_nat m) (integer_of_nat n));
 
-times_int :: Int -> Int -> Int;
-times_int (Neg m) (Neg n) = Pos (times_num m n);
-times_int (Neg m) (Pos n) = Neg (times_num m n);
-times_int (Pos m) (Neg n) = Neg (times_num m n);
-times_int (Pos m) (Pos n) = Pos (times_num m n);
-times_int Zero_int l = Zero_int;
-times_int k Zero_int = Zero_int;
+divide_integer :: Integer -> Integer -> Integer;
+divide_integer k l = fst (divmod_integer k l);
 
-mul :: Int -> State -> State;
-mul m (St n) = St (times_int m n);
+divide_nat :: Nat -> Nat -> Nat;
+divide_nat m n = Nat (divide_integer (integer_of_nat m) (integer_of_nat n));
 
-suba :: Int -> State -> State;
-suba m (St n) = St (minus_int m n);
+nat_of_integer :: Integer -> Nat;
+nat_of_integer k = Nat (max (0 :: Integer) k);
 
-less_eq_num :: Num -> Num -> Bool;
-less_eq_num (Bit1 m) (Bit0 n) = less_num m n;
-less_eq_num (Bit1 m) (Bit1 n) = less_eq_num m n;
-less_eq_num (Bit0 m) (Bit1 n) = less_eq_num m n;
-less_eq_num (Bit0 m) (Bit0 n) = less_eq_num m n;
-less_eq_num (Bit1 m) One = False;
-less_eq_num (Bit0 m) One = False;
-less_eq_num One n = True;
+equal_nat :: Nat -> Nat -> Bool;
+equal_nat m n = integer_of_nat m == integer_of_nat n;
 
-less_num :: Num -> Num -> Bool;
-less_num (Bit1 m) (Bit0 n) = less_num m n;
-less_num (Bit1 m) (Bit1 n) = less_num m n;
-less_num (Bit0 m) (Bit1 n) = less_eq_num m n;
-less_num (Bit0 m) (Bit0 n) = less_num m n;
-less_num One (Bit1 n) = True;
-less_num One (Bit0 n) = True;
-less_num m One = False;
+zero_nat :: Nat;
+zero_nat = Nat (0 :: Integer);
 
-less_eq_int :: Int -> Int -> Bool;
-less_eq_int (Neg k) (Neg l) = less_eq_num l k;
-less_eq_int (Neg k) (Pos l) = True;
-less_eq_int (Neg k) Zero_int = True;
-less_eq_int (Pos k) (Neg l) = False;
-less_eq_int (Pos k) (Pos l) = less_eq_num k l;
-less_eq_int (Pos k) Zero_int = False;
-less_eq_int Zero_int (Neg l) = False;
-less_eq_int Zero_int (Pos l) = True;
-less_eq_int Zero_int Zero_int = True;
+one_nat :: Nat;
+one_nat = Nat (1 :: Integer);
 
-divmod_step_int :: Num -> (Int, Int) -> (Int, Int);
-divmod_step_int l (q, r) =
-  (if less_eq_int (Pos l) r
-    then (plus_int (times_int (Pos (Bit0 One)) q) one_int, minus_int r (Pos l))
-    else (times_int (Pos (Bit0 One)) q, r));
+string_of_digit :: Nat -> String;
+string_of_digit n =
+  (if equal_nat n zero_nat then "0"
+    else (if equal_nat n one_nat then "1"
+           else (if equal_nat n (nat_of_integer (2 :: Integer)) then "2"
+                  else (if equal_nat n (nat_of_integer (3 :: Integer)) then "3"
+                         else (if equal_nat n (nat_of_integer (4 :: Integer))
+                                then "4"
+                                else (if equal_nat n
+   (nat_of_integer (5 :: Integer))
+                                       then "5"
+                                       else (if equal_nat n
+          (nat_of_integer (6 :: Integer))
+      then "6"
+      else (if equal_nat n (nat_of_integer (7 :: Integer)) then "7"
+             else (if equal_nat n (nat_of_integer (8 :: Integer)) then "8"
+                    else "9")))))))));
 
-divmod_int :: Num -> Num -> (Int, Int);
-divmod_int (Bit1 m) (Bit1 n) =
-  (if less_num m n then (Zero_int, Pos (Bit1 m))
-    else divmod_step_int (Bit1 n) (divmod_int (Bit1 m) (Bit0 (Bit1 n))));
-divmod_int (Bit0 m) (Bit1 n) =
-  (if less_eq_num m n then (Zero_int, Pos (Bit0 m))
-    else divmod_step_int (Bit1 n) (divmod_int (Bit0 m) (Bit0 (Bit1 n))));
-divmod_int (Bit1 m) (Bit0 n) =
-  (case divmod_int m n of {
-    (q, r) -> (q, plus_int (times_int (Pos (Bit0 One)) r) one_int);
-  });
-divmod_int (Bit0 m) (Bit0 n) = (case divmod_int m n of {
-                                 (q, r) -> (q, times_int (Pos (Bit0 One)) r);
-                               });
-divmod_int One (Bit1 n) = (Zero_int, Pos One);
-divmod_int One (Bit0 n) = (Zero_int, Pos One);
-divmod_int m One = (Pos m, Zero_int);
+less_nat :: Nat -> Nat -> Bool;
+less_nat m n = integer_of_nat m < integer_of_nat n;
 
-of_bool :: forall a. (Zero_neq_one a) => Bool -> a;
-of_bool True = one;
-of_bool False = zero;
+string_of_nat :: Nat -> String;
+string_of_nat n =
+  (if less_nat n (nat_of_integer (10 :: Integer)) then string_of_digit n
+    else string_of_nat (divide_nat n (nat_of_integer (10 :: Integer))) ++
+           string_of_digit (modulo_nat n (nat_of_integer (10 :: Integer))));
 
-equal_num :: Num -> Num -> Bool;
-equal_num (Bit0 x2) (Bit1 x3) = False;
-equal_num (Bit1 x3) (Bit0 x2) = False;
-equal_num One (Bit1 x3) = False;
-equal_num (Bit1 x3) One = False;
-equal_num One (Bit0 x2) = False;
-equal_num (Bit0 x2) One = False;
-equal_num (Bit1 x3) (Bit1 y3) = equal_num x3 y3;
-equal_num (Bit0 x2) (Bit0 y2) = equal_num x2 y2;
-equal_num One One = True;
+string_of_int :: Int -> String;
+string_of_int i =
+  (if less_int i zero_int then "-" ++ string_of_nat (nat (uminus_int i))
+    else string_of_nat (nat i));
 
-equal_int :: Int -> Int -> Bool;
-equal_int (Neg k) (Neg l) = equal_num k l;
-equal_int (Neg k) (Pos l) = False;
-equal_int (Neg k) Zero_int = False;
-equal_int (Pos k) (Neg l) = False;
-equal_int (Pos k) (Pos l) = equal_num k l;
-equal_int (Pos k) Zero_int = False;
-equal_int Zero_int (Neg l) = False;
-equal_int Zero_int (Pos l) = False;
-equal_int Zero_int Zero_int = True;
-
-adjust_div :: (Int, Int) -> Int;
-adjust_div (q, r) = plus_int q (of_bool (not (equal_int r Zero_int)));
-
-divide_int :: Int -> Int -> Int;
-divide_int (Neg m) (Neg n) = fst (divmod_int m n);
-divide_int (Pos m) (Neg n) = uminus_int (adjust_div (divmod_int m n));
-divide_int (Neg m) (Pos n) = uminus_int (adjust_div (divmod_int m n));
-divide_int (Pos m) (Pos n) = fst (divmod_int m n);
-divide_int k (Neg One) = uminus_int k;
-divide_int k (Pos One) = k;
-divide_int Zero_int k = Zero_int;
-divide_int k Zero_int = Zero_int;
-
-divi :: Int -> State -> State;
-divi m (St n) = St (divide_int m n);
-
-eval :: State -> Session -> State;
-eval s GetResult = s;
-eval (St i) (Clear ses) = eval (St Zero_int) ses;
-eval (St j) (Add i ses) = eval (add i (St j)) ses;
-eval (St j) (Sub i ses) = eval (suba i (St j)) ses;
-eval (St j) (Mul i ses) = eval (mul i (St j)) ses;
-eval (St j) (Div i ses) = eval (divi i (St j)) ses;
-
-clear :: State -> State;
-clear (St m) = St Zero_int;
-
-getResult :: State -> Int;
-getResult (St m) = m;
+pp :: Session -> String;
+pp GetResult = ".getResult()";
+pp (Clear ses) = ".clear()" ++ pp ses;
+pp (Add i ses) = ((".add(" ++ string_of_int i) ++ ")") ++ pp ses;
+pp (Sub i ses) = ((".sub(" ++ string_of_int i) ++ ")") ++ pp ses;
+pp (Mul i ses) = ((".mul(" ++ string_of_int i) ++ ")") ++ pp ses;
+pp (Div i ses) = ((".div(" ++ string_of_int i) ++ ")") ++ pp ses;
 
 }
