@@ -1,5 +1,5 @@
 theory Calculator
-imports Main "HOL-Library.Main"
+imports Main "HOL-Library.Code_Target_Int"
 begin
 
 (* state is a wrapper for an int
