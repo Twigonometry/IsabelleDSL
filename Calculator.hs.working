@@ -1,6 +1,9 @@
 {-# LANGUAGE EmptyDataDecls, RankNTypes, ScopedTypeVariables #-}
 
-module Calculator(Int, Session, pp) where {
+module
+  Calculator(Int, State, Session, pp, add, mul, sub, divi, eval, clear,
+              getResult)
+  where {
 
 import Prelude ((==), (/=), (<), (<=), (>=), (>), (+), (-), (*), (/), (**),
   (>>=), (>>), (=<<), (&&), (||), (^), (^^), (.), ($), ($!), (++), (!!), Eq,
@@ -24,6 +27,8 @@ newtype Int = Int_of_integer Integer;
 newtype Nat = Nat Integer;
 
 data Num = One | Bit0 Num | Bit1 Num;
+
+newtype State = St Int;
 
 data Session = GetResult | Clear Session | Add Int Session | Sub Int Session
   | Mul Int Session | Div Int Session;
@@ -137,5 +142,44 @@ pp (Add i ses) = ((".add(" ++ string_of_int i) ++ ")") ++ pp ses;
 pp (Sub i ses) = ((".sub(" ++ string_of_int i) ++ ")") ++ pp ses;
 pp (Mul i ses) = ((".mul(" ++ string_of_int i) ++ ")") ++ pp ses;
 pp (Div i ses) = ((".div(" ++ string_of_int i) ++ ")") ++ pp ses;
+
+plus_int :: Int -> Int -> Int;
+plus_int k l = Int_of_integer (integer_of_int k + integer_of_int l);
+
+add :: Int -> State -> State;
+add m (St n) = St (plus_int m n);
+
+times_int :: Int -> Int -> Int;
+times_int k l = Int_of_integer (integer_of_int k * integer_of_int l);
+
+mul :: Int -> State -> State;
+mul m (St n) = St (times_int m n);
+
+minus_int :: Int -> Int -> Int;
+minus_int k l = Int_of_integer (integer_of_int k - integer_of_int l);
+
+sub :: Int -> State -> State;
+sub m (St n) = St (minus_int m n);
+
+divide_int :: Int -> Int -> Int;
+divide_int k l =
+  Int_of_integer (divide_integer (integer_of_int k) (integer_of_int l));
+
+divi :: Int -> State -> State;
+divi m (St n) = St (divide_int m n);
+
+eval :: State -> Session -> State;
+eval s GetResult = s;
+eval (St i) (Clear ses) = eval (St zero_int) ses;
+eval (St j) (Add i ses) = eval (add i (St j)) ses;
+eval (St j) (Sub i ses) = eval (sub i (St j)) ses;
+eval (St j) (Mul i ses) = eval (mul i (St j)) ses;
+eval (St j) (Div i ses) = eval (divi i (St j)) ses;
+
+clear :: State -> State;
+clear (St m) = St zero_int;
+
+getResult :: State -> Int;
+getResult (St m) = m;
 
 }
