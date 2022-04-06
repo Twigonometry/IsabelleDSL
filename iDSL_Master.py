@@ -1,12 +1,16 @@
 import argparse
 import sys
 import re
+import os
 
 # IsabelleDSL Master Script
 
 class isabelleDSL:
     
     export_string = 'ML {{*\nval gen_files = Generated_Files.get_files (Proof_Context.theory_of @{{context}})\nval output_dir = Path.explode \"{0}\"\n*}}\n\nML {{* map (Generated_Files.write_file output_dir) gen_files *}}'
+
+    def __init__(self):
+        self.theory_funcs = []
 
     def parse_args(self):
         #setup argparse
@@ -27,10 +31,19 @@ class isabelleDSL:
     def load_theory(self):
         """load a theory file and extract its custom functions"""
 
-        with open(self.args.theory_file, 'r') as f:
-            self.theory_file = f.read()
+        if not self.args.theory_file:
+            cmd = "isabelle build -e -D " + self.args.project_folder
 
-        self.find_funcs()
+            os.system(cmd)
+
+            #TODO: add a command to move the generated code to a more appropriate place
+            #could also build this in to the inserted ML code - export it straight to X
+
+        else:
+            with open(self.args.theory_file, 'r') as f:
+                self.theory_file = f.read()
+
+            self.find_funcs()
 
     def find_funcs(self):
         """find function definitions in theory file"""
@@ -44,12 +57,15 @@ class isabelleDSL:
 
         functions_string = " ".join(self.theory_funcs)
 
-        #add code to theory file to create intermediary Haskell code
-        self.temp_theory_file = self.theory_file + "\n\nexport_code " + functions_string + " in Haskell module_name" + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+        if not self.args.theory_file:
+            pass
+        else:
+            #add code to theory file to create intermediary Haskell code
+            self.temp_theory_file = self.theory_file + "\n\nexport_code " + functions_string + " in Haskell module_name" + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
-        self.temp_theory_file = self.temp_theory_file + "\n\n" + self.export_string.format(self.args.output_directory)
+            self.temp_theory_file = self.temp_theory_file + "\n\n" + self.export_string.format(self.args.output_directory)
 
-        print(self.temp_theory_file)
+            print(self.temp_theory_file)
 
     def main(self):
         self.parse_args()
