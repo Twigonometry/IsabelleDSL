@@ -120,3 +120,14 @@ fun pp :: "session => String.literal" where
 "pp (Div i ses) = STR ''.div('' + (string_of_int i) + STR '')'' + pp ses"
 
 end
+
+
+
+export_code pp in Haskell module_name Calculator file_prefix calculator
+
+ML {*
+val gen_files = Generated_Files.get_files (Proof_Context.theory_of @{context})
+val output_dir = Path.explode "/home/mac/Documents/Diss/IsabelleDSL"
+*}
+
+ML {* map (Generated_Files.write_file output_dir) gen_files *}

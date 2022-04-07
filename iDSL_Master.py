@@ -8,8 +8,6 @@ import os
 class isabelleDSL:
 
     def __init__(self):
-        # self.theory_funcs = []
-
         # Current Export Method uses following ML script to write to disk
         #TODO: find way to use new cartouche syntax/export_files in ROOT file
         # ML {*
@@ -46,15 +44,6 @@ class isabelleDSL:
             with open(self.args.theory_file, 'r') as f:
                 self.theory_file = f.read()
 
-            # self.find_funcs()
-
-    # def find_funcs(self):
-    #     """find function definitions in theory file"""
-
-    #     func_pat = re.compile(r'fun (\w+)')
-
-    #     self.theory_funcs = re.findall(func_pat, self.theory_file)
-
     def create_root_file(self):
         """create a root file
         TODO: can we use export_files here?"""
@@ -67,7 +56,7 @@ class isabelleDSL:
             pass
         else:
             #add code to theory file to create intermediary Haskell code
-            self.temp_theory_file = self.theory_file + "\n\n"# + self.pp_func_string
+            self.temp_theory_file = self.theory_file + "\n\n"
 
             self.temp_theory_file += "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
@@ -76,6 +65,8 @@ class isabelleDSL:
             print(self.temp_theory_file)
 
             #TODO: once created, build the theory with its root file
+            with open(self.args.theory_file.split(".thy")[0] + "_tmp.thy", 'w') as f:
+                f.write(self.temp_theory_file)
 
     def main(self):
         self.parse_args()
