@@ -6,11 +6,19 @@ import os
 # IsabelleDSL Master Script
 
 class isabelleDSL:
-    
-    export_string = 'ML {{*\nval gen_files = Generated_Files.get_files (Proof_Context.theory_of @{{context}})\nval output_dir = Path.explode \"{0}\"\n*}}\n\nML {{* map (Generated_Files.write_file output_dir) gen_files *}}'
 
     def __init__(self):
-        self.theory_funcs = []
+        # self.theory_funcs = []
+
+        # Current Export Method uses following ML script to write to disk
+        #TODO: find way to use new cartouche syntax/export_files in ROOT file
+        # ML {*
+        # val gen_files = Generated_Files.get_files (Proof_Context.theory_of @{context})
+        # val output_dir = Path.explode "./"
+        # *}
+        # ML {* map (Generated_Files.write_file output_dir) gen_files *}
+
+        self.ml_export_string = 'ML {{*\nval gen_files = Generated_Files.get_files (Proof_Context.theory_of @{{context}})\nval output_dir = Path.explode \"{0}\"\n*}}\n\nML {{* map (Generated_Files.write_file output_dir) gen_files *}}'
 
     def parse_args(self):
         #setup argparse
@@ -32,40 +40,42 @@ class isabelleDSL:
         """load a theory file and extract its custom functions"""
 
         if not self.args.theory_file:
-            cmd = "isabelle build -e -D " + self.args.project_folder
-
-            os.system(cmd)
-
-            #TODO: add a command to move the generated code to a more appropriate place
-            #could also build this in to the inserted ML code - export it straight to X
-
+            #TODO: how to handle a project folder?
+            pass
         else:
             with open(self.args.theory_file, 'r') as f:
                 self.theory_file = f.read()
 
-            self.find_funcs()
+            # self.find_funcs()
 
-    def find_funcs(self):
-        """find function definitions in theory file"""
+    # def find_funcs(self):
+    #     """find function definitions in theory file"""
 
-        func_pat = re.compile(r'fun (\w+)')
+    #     func_pat = re.compile(r'fun (\w+)')
 
-        self.theory_funcs = re.findall(func_pat, self.theory_file)
+    #     self.theory_funcs = re.findall(func_pat, self.theory_file)
+
+    def create_root_file(self):
+        """create a root file
+        TODO: can we use export_files here?"""
+        pass
 
     def create_temp_theory(self):
         """create a temporary theory file with additional export_code commands"""
-
-        functions_string = " ".join(self.theory_funcs)
 
         if not self.args.theory_file:
             pass
         else:
             #add code to theory file to create intermediary Haskell code
-            self.temp_theory_file = self.theory_file + "\n\nexport_code " + functions_string + " in Haskell module_name" + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+            self.temp_theory_file = self.theory_file + "\n\n"# + self.pp_func_string
 
-            self.temp_theory_file = self.temp_theory_file + "\n\n" + self.export_string.format(self.args.output_directory)
+            self.temp_theory_file += "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+
+            self.temp_theory_file += "\n\n" + self.ml_export_string.format(self.args.output_directory)
 
             print(self.temp_theory_file)
+
+            #TODO: once created, build the theory with its root file
 
     def main(self):
         self.parse_args()
@@ -81,12 +91,14 @@ class isabelleDSL:
             if len(self.args.target_language) < 1:
                 exit()
 
+        self.args.target_language = self.args.target_language.lower()
+
         #default values for parameters
         if not self.args.module_name:
             self.args.module_name = "Export"
 
         if not self.args.output_directory:
-            self.args.output_directory = "./"
+            self.args.output_directory = os.getcwd()
 
         #load the theory file or project folder
         self.load_theory()

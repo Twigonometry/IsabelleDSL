@@ -119,12 +119,6 @@ fun pp :: "session => String.literal" where
 "pp (Mul i ses) = STR ''.mul('' + (string_of_int i) + STR '')'' + pp ses" |
 "pp (Div i ses) = STR ''.div('' + (string_of_int i) + STR '')'' + pp ses"
 
-(* value "pp (session Add 5 (Add 4 (GetResult)))" *)
-
-value "pp GetResult"
-
-value "pp (Add 5 (Sub 4 (Div 4 (GetResult))))"
-
 export_code pp in Haskell module_name Calculator file_prefix calculator
 
 ML {*
