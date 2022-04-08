@@ -68,6 +68,8 @@ class isabelleDSL:
             with open(self.args.theory_file.split(".thy")[0] + "_tmp.thy", 'w') as f:
                 f.write(self.temp_theory_file)
 
+            #TODO: then run the exported haskell code
+
     def main(self):
         self.parse_args()
 

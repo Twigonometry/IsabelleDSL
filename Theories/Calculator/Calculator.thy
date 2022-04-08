@@ -119,4 +119,6 @@ fun pp :: "session => String.literal" where
 "pp (Mul i ses) = STR ''.mul('' + (string_of_int i) + STR '')'' + pp ses" |
 "pp (Div i ses) = STR ''.div('' + (string_of_int i) + STR '')'' + pp ses"
 
+export_code pp in Haskell module_name Calculator file_prefix calculator
+
 end
