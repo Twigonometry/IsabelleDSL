@@ -49,14 +49,7 @@ class isabelleDSL:
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
-            # endfile = re.compile(r'^end$\Z')
-            # endfile = re.compile(r'^end$')
-
-            print(re.findall(r'^end$', self.temp_theory_file, re.MULTILINE))
-
             self.temp_theory_file = re.sub(r'^end$', "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower() + "\n\nend", self.temp_theory_file, flags=re.MULTILINE)
-
-            print(self.temp_theory_file)
 
             #TODO: once created, build the theory with its root file
             with open("/tmp/" + self.thy_name + '.thy', 'w') as f:
@@ -76,11 +69,12 @@ class isabelleDSL:
 
     def run_temp_theory(self):
         #build the theory
+        print("Building theory file")
         os.chdir('/tmp')
         os.system('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
 
         #TODO: then run the exported haskell code
-        os.system('ghci export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower())
+        os.system('ghci -e ":load /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs"')
 
     def main(self):
         self.parse_args()
@@ -98,15 +92,14 @@ class isabelleDSL:
 
         if self.args.theory_file:
             self.tf_dir, self.tf_name = os.path.split(abspath(self.args.theory_file))
-            # print(self.tf_dir)
-            # print(self.tf_name)
+
             self.thy_name = self.tf_name.split(".thy")[0]
 
         self.args.target_language = self.args.target_language.lower()
 
         #default values for parameters
         if not self.args.module_name:
-            self.args.module_name = "Export"
+            self.args.module_name = self.thy_name
 
         if not self.args.output_directory:
             self.args.output_directory = os.getcwd()
