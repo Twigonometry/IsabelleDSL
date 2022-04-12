@@ -21,6 +21,7 @@ class isabelleDSL:
         parser.add_argument("-l", "--target_language", help="Host language to output DSL in.")
         parser.add_argument("-o", "--output_directory", help="Directory to output files to. Default is CWD.")
         parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode.")
+        parser.add_argument("-s", "--sessions_file", help="File with user sessions, separated by newlines.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -51,7 +52,7 @@ class isabelleDSL:
 
             self.temp_theory_file = re.sub(r'^end$', "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower() + "\n\nend", self.temp_theory_file, flags=re.MULTILINE)
 
-            #TODO: once created, build the theory with its root file
+            #write to temporary theory file
             with open("/tmp/" + self.thy_name + '.thy', 'w') as f:
                 f.write(self.temp_theory_file)
 
@@ -62,19 +63,40 @@ class isabelleDSL:
             else:
                 #if no existing ROOT file, create one from template
                 with open('./Resources/ROOT.template') as f:
-                    newText=f.read().replace('TheoryName', self.thy_name)
+                    root_contents = f.read().replace('TheoryName', self.thy_name)
 
                 with open("/tmp/ROOT", 'w') as f:
-                    f.write(newText)
+                    f.write(root_contents)
 
     def run_temp_theory(self):
         #build the theory
-        print("Building theory file")
+        print("Building theory file...")
         os.chdir('/tmp')
         os.system('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
 
-        #TODO: then run the exported haskell code
-        os.system('ghci -e ":load /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs"')
+        print("Done building")
+
+        print("Adding main function to Haskell file")
+
+        #create a main function that calls pp on each user session
+        with open('/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs', 'r') as f:
+            text = f.read()
+
+        newtext = "\n\nmain :: IO ()\nmain =\n  do\n"
+
+        for s in self.user_sessions:
+            newtext += "\n    pp (" + s + ")"
+
+        newtext += "\n\n}"
+
+        text = re.sub(r'^}$', newtext, text, flags=re.MULTILINE)
+
+        with open('/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs', 'w') as f:
+            f.write(text)
+
+        #run the haskell file
+        print("Running Haskell file")
+        os.system('runghc /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs')
 
     def main(self):
         self.parse_args()
@@ -89,6 +111,15 @@ class isabelleDSL:
             #TODO: add a check here for allowed export languages
             if len(self.args.target_language) < 1:
                 exit()
+
+        if not self.args.sessions_file:
+            self.args.sessions_file = input("File with user sessions (sequence of actions to perform) must be supplied! Enter filepath:\n")
+
+            if len(self.args.sessions_file) < 1:
+                exit()
+
+        with open(self.args.sessions_file) as f:
+            self.user_sessions = f.read().splitlines()
 
         if self.args.theory_file:
             self.tf_dir, self.tf_name = os.path.split(abspath(self.args.theory_file))

@@ -1,0 +1,2 @@
+Clear GetResult
+Add (Int_of_integer 5) (Sub (Int_of_integer 4) (Div (Int_of_integer 4) (GetResult)))
