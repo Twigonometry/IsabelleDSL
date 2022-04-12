@@ -2,21 +2,12 @@ import argparse
 import sys
 import re
 import os
+from os.path import exists, abspath
+import shutil
 
 # IsabelleDSL Master Script
 
 class isabelleDSL:
-
-    def __init__(self):
-        # Current Export Method uses following ML script to write to disk
-        #TODO: find way to use new cartouche syntax/export_files in ROOT file
-        # ML {*
-        # val gen_files = Generated_Files.get_files (Proof_Context.theory_of @{context})
-        # val output_dir = Path.explode "./"
-        # *}
-        # ML {* map (Generated_Files.write_file output_dir) gen_files *}
-
-        self.ml_export_string = 'ML {{*\nval gen_files = Generated_Files.get_files (Proof_Context.theory_of @{{context}})\nval output_dir = Path.explode \"{0}\"\n*}}\n\nML {{* map (Generated_Files.write_file output_dir) gen_files *}}'
 
     def parse_args(self):
         #setup argparse
@@ -60,15 +51,29 @@ class isabelleDSL:
 
             self.temp_theory_file += "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
-            self.temp_theory_file += "\n\n" + self.ml_export_string.format(self.args.output_directory)
-
             print(self.temp_theory_file)
 
             #TODO: once created, build the theory with its root file
-            with open(self.args.theory_file.split(".thy")[0] + "_tmp.thy", 'w') as f:
+            with open("/tmp/" + self.thy_name + '.thy', 'w') as f:
                 f.write(self.temp_theory_file)
 
+            #TODO: check if ROOT file contains an export-files command, if not exit/print warning
+            if exists(self.tf_dir + "/ROOT"):
+                print("Existing ROOT file found - copying - please make sure this file contains an export_files statement")
+                shutil.copy(self.tf_dir + "/ROOT", "/tmp/ROOT")
+            else:
+                with open('./Resources/ROOT.template') as f:
+                    newText=f.read().replace('TheoryName', self.thy_name)
+
+                with open("/tmp/ROOT", 'w') as f:
+                    f.write(newText)
+
+            #build the theory
+            os.chdir('/tmp')
+            os.system('isabelle export -d . -x "*:**.hs" Calculator')
+
             #TODO: then run the exported haskell code
+            os.system('ghci export/' + self.thy_name + '.' + self.thy_name + '/code/' + self.thy_name.lower())
 
     def main(self):
         self.parse_args()
@@ -83,6 +88,12 @@ class isabelleDSL:
             #TODO: add a check here for allowed export languages
             if len(self.args.target_language) < 1:
                 exit()
+
+        if self.args.theory_file:
+            self.tf_dir, self.tf_name = os.path.split(abspath(self.args.theory_file))
+            # print(self.tf_dir)
+            # print(self.tf_name)
+            self.thy_name = self.tf_name.split(".thy")[0]
 
         self.args.target_language = self.args.target_language.lower()
 
