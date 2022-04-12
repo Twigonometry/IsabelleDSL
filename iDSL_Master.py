@@ -49,7 +49,12 @@ class isabelleDSL:
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
-            self.temp_theory_file += "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+            # endfile = re.compile(r'^end$\Z')
+            # endfile = re.compile(r'^end$')
+
+            print(re.findall(r'^end$', self.temp_theory_file, re.MULTILINE))
+
+            self.temp_theory_file = re.sub(r'^end$', "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower() + "\n\nend", self.temp_theory_file, flags=re.MULTILINE)
 
             print(self.temp_theory_file)
 
@@ -62,18 +67,20 @@ class isabelleDSL:
                 print("Existing ROOT file found - copying - please make sure this file contains an export_files statement")
                 shutil.copy(self.tf_dir + "/ROOT", "/tmp/ROOT")
             else:
+                #if no existing ROOT file, create one from template
                 with open('./Resources/ROOT.template') as f:
                     newText=f.read().replace('TheoryName', self.thy_name)
 
                 with open("/tmp/ROOT", 'w') as f:
                     f.write(newText)
 
-            #build the theory
-            os.chdir('/tmp')
-            os.system('isabelle export -d . -x "*:**.hs" Calculator')
+    def run_temp_theory(self):
+        #build the theory
+        os.chdir('/tmp')
+        os.system('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
 
-            #TODO: then run the exported haskell code
-            os.system('ghci export/' + self.thy_name + '.' + self.thy_name + '/code/' + self.thy_name.lower())
+        #TODO: then run the exported haskell code
+        os.system('ghci export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower())
 
     def main(self):
         self.parse_args()
@@ -109,6 +116,8 @@ class isabelleDSL:
 
         #create a temporary theory file
         self.create_temp_theory()
+
+        self.run_temp_theory()
 
 if __name__ == '__main__':
     idsl = isabelleDSL()
