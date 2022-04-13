@@ -1,0 +1,4 @@
+session TheoryName = "HOL-Library" +
+  theories
+    TheoryName
+  export_files (in ".") "*:**.hs"
