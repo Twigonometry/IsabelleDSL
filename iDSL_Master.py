@@ -76,27 +76,10 @@ class isabelleDSL:
 
         print("Done building")
 
-        print("Adding main function to Haskell file")
-
-        #create a main function that calls pp on each user session
-        with open('/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs', 'r') as f:
-            text = f.read()
-
-        newtext = "\n\nmain :: IO ()\nmain =\n  do\n"
-
-        for s in self.user_sessions:
-            newtext += "\n    pp (" + s + ")"
-
-        newtext += "\n\n}"
-
-        text = re.sub(r'^}$', newtext, text, flags=re.MULTILINE)
-
-        with open('/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs', 'w') as f:
-            f.write(text)
-
         #run the haskell file
         print("Running Haskell file")
-        os.system('runghc /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs')
+        for s in self.user_sessions:
+            os.system('ghci /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs -e "pp (' + s + ')"')
 
     def main(self):
         self.parse_args()
