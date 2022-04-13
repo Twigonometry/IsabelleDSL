@@ -17,6 +17,8 @@ python iDSL_Master.py -t .\Calculator.thy -l haskell
 
 This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added.
 
+A boilerplate file must be supplied, and the `SESSIONS[]` placeholder indicates where all sessions will be inserted. Within this, any string can be inserted - within the string, the string `{session}` will be replaced by each pretty-printed user session.
+
 ## Notes for Myself - How to Manually Interact with System
 
 ### Building Manually

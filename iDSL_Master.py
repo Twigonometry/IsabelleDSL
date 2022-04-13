@@ -9,6 +9,10 @@ import shutil
 
 class isabelleDSL:
 
+    file_extensions = {
+        "python":".py"
+    }
+
     def parse_args(self):
         #setup argparse
         parser = argparse.ArgumentParser(prog="iDSL_Master.py", description="Convert an Isabelle project to a domain-specific language")
@@ -22,6 +26,7 @@ class isabelleDSL:
         parser.add_argument("-o", "--output_directory", help="Directory to output files to. Default is CWD.")
         parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode.")
         parser.add_argument("-s", "--sessions_file", help="File with user sessions, separated by newlines.")
+        parser.add_argument("-b", "--boilerplate_file", help="File with boilerplate code to insert sessions into.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -78,11 +83,45 @@ class isabelleDSL:
 
         #run the haskell file
         print("Running Haskell file")
+        
+        self.sessions_strings = []
+
         for s in self.user_sessions:
-            os.system('ghci /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs -e "pp (' + s + ')"')
+            res = os.popen('ghci /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs -e "pp (' + s + ')"').read()
+            self.sessions_strings.append(res[1:(len(res) - 2)])
+
+        os.chdir(self.orig_path)
+
+    def insert_boilerplate(self):
+        with open(self.args.boilerplate_file) as f:
+            self.boilerplate_text = f.read()
+
+        # print(self.boilerplate_text)
+
+        sess_re = r'SESSIONS\[(.*)\]'
+        pat = re.compile(sess_re)
+        # sessions_string = pat.match(self.boilerplate_text)
+        sessions_placeholder = re.search(pat, self.boilerplate_text).group(1)
+        # print(sessions_placeholder)
+
+        sessions_string = ""
+
+        for sess in self.sessions_strings:
+            sessions_string += (sessions_placeholder.replace('[session]', sess) + "\n")
+
+        # print(sessions_string)
+
+        new_text = re.sub(sess_re, sessions_string, self.boilerplate_text, flags=re.MULTILINE)
+
+        # print(new_text)
+
+        with open(self.args.output_directory + "/export" + self.file_extensions[self.args.target_language], 'w') as f:
+            f.write(new_text)
 
     def main(self):
         self.parse_args()
+
+        self.orig_path = os.getcwd()
 
         if not self.args.theory_file and not self.args.project_folder:
             print("One of -t or -p must be supplied!")
@@ -101,6 +140,12 @@ class isabelleDSL:
             if len(self.args.sessions_file) < 1:
                 exit()
 
+        if not self.args.boilerplate_file:
+            self.args.boilerplate_file = input("File with boilerplate code must be supplied! Enter filepath:\n")
+
+            if len(self.args.boilerplate_file) < 1:
+                exit()
+
         with open(self.args.sessions_file) as f:
             self.user_sessions = f.read().splitlines()
 
@@ -116,7 +161,7 @@ class isabelleDSL:
             self.args.module_name = self.thy_name
 
         if not self.args.output_directory:
-            self.args.output_directory = os.getcwd()
+            self.args.output_directory = self.orig_path
 
         #load the theory file or project folder
         self.load_theory()
@@ -125,6 +170,8 @@ class isabelleDSL:
         self.create_temp_theory()
 
         self.run_temp_theory()
+
+        self.insert_boilerplate()
 
 if __name__ == '__main__':
     idsl = isabelleDSL()
