@@ -9,15 +9,15 @@ First, define a theory to export. There are example theories in the `Theories` d
 
 If you do not specify a `ROOT` file, the script will attempt to create one for you. If you do, it must have an `export_files` statement in it, and import `HOL-Library`. See [ROOT.example](./ROOT.example) for an example `ROOT` file structure.
 
-Then run the script, passing the theory file:
-
-```
-python iDSL_Master.py -t .\Calculator.thy -l haskell
-```
-
-This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added.
-
 A boilerplate file must be supplied, and the `SESSIONS[]` placeholder indicates where all sessions will be inserted. Within this, any string can be inserted - within the string, the string `{session}` will be replaced by each pretty-printed user session.
+
+Then run the script, passing the theory file, list of user sessions, and boilerplate code:
+
+```
+python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator calculator_boilerplate.txt
+```
+
+This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added. The final file will be `export.X`, where `X` is the target language file extension, in the output directory specified by `-O` flag.
 
 ## Notes for Myself - How to Manually Interact with System
 

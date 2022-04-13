@@ -86,35 +86,38 @@ class isabelleDSL:
         
         self.sessions_strings = []
 
+        #run haskell file, passing each session to the pp function
         for s in self.user_sessions:
             res = os.popen('ghci /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs -e "pp (' + s + ')"').read()
             self.sessions_strings.append(res[1:(len(res) - 2)])
 
+        #reset working directory
         os.chdir(self.orig_path)
 
     def insert_boilerplate(self):
+        """insert pretty-printed sessions code into user-defined boilerplate"""
+
+        print("Inserting pretty-printed sessions into boilerplate code")
+
+        #get current boilerplate code
         with open(self.args.boilerplate_file) as f:
             self.boilerplate_text = f.read()
 
-        # print(self.boilerplate_text)
-
+        #find the SESSIONS[] string in the boilerplate and extract the sessions placeholder contents inside it
         sess_re = r'SESSIONS\[(.*)\]'
         pat = re.compile(sess_re)
-        # sessions_string = pat.match(self.boilerplate_text)
         sessions_placeholder = re.search(pat, self.boilerplate_text).group(1)
-        # print(sessions_placeholder)
 
         sessions_string = ""
 
+        #format all pretty-printed sessions strings and add them to string
         for sess in self.sessions_strings:
             sessions_string += (sessions_placeholder.replace('[session]', sess) + "\n")
 
-        # print(sessions_string)
-
+        #insert sessions into the SESSIONS[] string
         new_text = re.sub(sess_re, sessions_string, self.boilerplate_text, flags=re.MULTILINE)
 
-        # print(new_text)
-
+        #write the final exported file
         with open(self.args.output_directory + "/export" + self.file_extensions[self.args.target_language], 'w') as f:
             f.write(new_text)
 
