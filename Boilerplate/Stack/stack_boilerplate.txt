@@ -1,0 +1,24 @@
+class Stack:
+    empty = []
+
+    def __init__(self) -> None:
+        self.stack = []
+    
+    def push(self, i):
+        self.stack.append(i)
+        return self
+
+    def pop(self):
+        if self.stack == self.empty:
+            return self
+        else:
+            self.stack = self.stack[:-1]
+            return self
+
+    def items(self):
+        return self.stack
+
+SESSIONS[
+s = Stack()
+s[session]
+]

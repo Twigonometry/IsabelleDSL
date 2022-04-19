@@ -1,0 +1,4 @@
+session Stack = "HOL-Library" +
+  theories
+    Stack
+  export_files (in ".") "*:**.hs"
