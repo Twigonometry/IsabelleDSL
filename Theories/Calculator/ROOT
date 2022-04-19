@@ -1,4 +1,5 @@
 session Calculator = "HOL-Library" +
   theories
     Calculator
+    "/tmp/StringUtils"
   export_files (in ".") "*:**.hs"

@@ -61,6 +61,12 @@ class isabelleDSL:
             with open("/tmp/" + self.thy_name + '.thy', 'w') as f:
                 f.write(self.temp_theory_file)
 
+            if exists(self.orig_path + "/Resources/StringUtils.thy"):
+                shutil.copy(self.orig_path + "/Resources/StringUtils.thy", "/tmp/StringUtils.thy")
+            else:
+                print("Resources/StringUtils.thy file not found. Check this has not been deleted. Exiting.")
+                exit()
+
             #TODO: check if ROOT file contains an export-files command, if not exit/print warning
             if exists(self.tf_dir + "/ROOT"):
                 print("Existing ROOT file found - copying - please make sure this file contains an export_files statement")
