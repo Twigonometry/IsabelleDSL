@@ -1,5 +1,5 @@
 session TheoryName = "HOL-Library" +
   theories
     TheoryName
-    StringUtils
+    "/tmp/StringUtils"
   export_files (in ".") "*:**.hs"
