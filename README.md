@@ -9,7 +9,7 @@ First, define a theory to export. There are example theories in the `Theories` d
 
 The `pp` function must be of the type `session => String.literal`. The theory file must also define the structure of a `session`, which is essentially a sequence of user actions (function calls) in your DSL.
 
-You must provide a user sessions file, which contains a call to functions in your theory file that is to be pretty printed into code in your target language.
+You must provide a user sessions file, which contains a call to functions in your theory file that is to be pretty printed into code in your target language. Make sure values in the sessions file are cast to their appropriate types, e.g. with `Int_of_integer` (see [here](./Theories/Calculator/user_sessions) for an example).
 
 If you do not specify a `ROOT` file, the script will attempt to create one for you. If you do, it must have an `export_files` statement in it, and import `HOL-Library`. See [ROOT.example](./ROOT.example) for an example `ROOT` file structure.
 

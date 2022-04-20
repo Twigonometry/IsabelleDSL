@@ -1,1 +1,1 @@
-items (pop (pop (push 4 (pop (push 3 (push 2 (push 1 (AStack [] []))))))))
+Items (Pop (Pop (Push (Int_of_integer 4) (Pop (Push (Int_of_integer 3) (Push (Int_of_integer 2) (Push (Int_of_integer 1) Empty)))))))
