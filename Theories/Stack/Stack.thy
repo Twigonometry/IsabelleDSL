@@ -19,7 +19,7 @@ fun pop :: "'a stack \<Rightarrow> 'a stack" where
 fun items :: "'a stack \<Rightarrow> 'a list" where
 "items (AStack xs ys) = xs @ ys"
 
-datatype session = Items session | Push int session | Pop session | Empty
+datatype session = Items session | Push int session | Pop session | 'a list 'a list
 
 fun pp :: "session => String.literal" where
 "pp (Items ses) = pp ses + STR ''.items()''" |
