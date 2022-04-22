@@ -110,12 +110,8 @@ class isabelleDSL:
             self.boilerplate_text = f.read()
 
         #find the SESSIONS[] string in the boilerplate and extract the sessions placeholder contents inside it
-        sess_re = r'SESSIONS\[(.|\n)*\]'
-        # pat = re.compile(sess_re)
-        # print(re.search(pat, self.boilerplate_text))
-        print(re.search(sess_re, self.boilerplate_text, flags=re.MULTILINE))
-        sessions_placeholder = re.search(sess_re, self.boilerplate_text, flags=re.MULTILINE).group()#.group(1)
-        print(sessions_placeholder)
+        sess_re = r'SESSIONS\[((.|\n)*)\]'
+        sessions_placeholder = re.search(sess_re, self.boilerplate_text, flags=re.MULTILINE).group(1)
 
         sessions_string = ""
 

@@ -16,7 +16,7 @@ class Stack:
             return self
 
     def items(self):
-        return self.stack
+        print(self.stack)
 
 SESSIONS[
 s = Stack()
