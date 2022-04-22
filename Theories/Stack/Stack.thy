@@ -19,11 +19,12 @@ fun pop :: "'a stack \<Rightarrow> 'a stack" where
 fun items :: "'a stack \<Rightarrow> 'a list" where
 "items (AStack xs ys) = xs @ ys"
 
-datatype session = Items | Push int session | Pop session
+datatype session = Items session | Push int session | Pop session | "'a list" "'a list"
 
 fun pp :: "session => String.literal" where
-"pp Items = STR ''.items()''" |
-"pp (Push i ses) = STR ''.push('' + (string_of_int i) + STR '')'' + pp ses" |
-"pp (Pop ses) = STR ''.pop()'' + pp ses"
+"pp (Items ses) = pp ses + STR ''.items()''" |
+"pp (Push i ses) = pp ses + STR ''.push('' + (string_of_int i) + STR '')''" |
+"pp (Pop ses) = pp ses + STR ''.pop()''" |
+"pp llist rlist = (string_of_int_list llist) + (string_of_int_list rlist)"
 
 end

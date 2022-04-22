@@ -30,4 +30,9 @@ definition string_of_int :: "int => String.literal"
     "string_of_int i =
       (if i < 0 then STR ''-'' + string_of_nat (nat (- i)) else string_of_nat (nat i))"
 
+fun string_of_int_list :: "'a list \<Rightarrow> String.literal"
+  where
+    "string_of_int_list x xs = string_of_int x + string_of_int_list xs" |
+    "string_of_int_list [] = STR ''''"
+
 end
