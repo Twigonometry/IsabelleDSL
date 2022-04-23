@@ -32,7 +32,7 @@ definition string_of_int :: "int => String.literal"
 
 fun string_of_int_list :: "'a list \<Rightarrow> String.literal"
   where
-    "string_of_int_list x xs = string_of_int x + string_of_int_list xs" |
+    "string_of_int_list (x xs) = string_of_int (int x) + string_of_int_list xs" |
     "string_of_int_list [] = STR ''''"
 
 end
