@@ -5,9 +5,9 @@ This project is part of my third-year Dissertation Project at the [University of
 
 ## Usage
 
-First, define a theory to export. There are example theories in the `Theories` directory. Your theory must contain a `pp` function for converting sessions into the target language. You do not need to add an `export_code` statement to your theory - this will be automatically added. However, you should add `StringUtils` to the theory's imports. This then allows you to use the functions `string_of_int` etc when writing the `pp` function.
+First, define a theory to export. There are example theories in the `Theories` directory. You must supply a file containing a `pp` function for converting sessions into the target language. You do not need to add an `export_code` statement to your theory - this will be automatically added. However, you should add `StringUtils` to the theory's imports. This then allows you to use the functions `string_of_int` etc when writing the `pp` function.
 
-The `pp` function must be of the type `session => String.literal`. The theory file must also define the structure of a `session`, which is essentially a sequence of user actions (function calls) in your DSL.
+The `pp` function must be of the type `session => String.literal`. The theory file must also define the structure of a `session`, which is essentially a sequence of user actions (function calls) in your DSL. You can then write several different pp functions for different languages.
 
 You must provide a user sessions file, which contains a call to functions in your theory file that is to be pretty printed into code in your target language. Make sure values in the sessions file are cast to their appropriate types, e.g. with `Int_of_integer` (see [here](./Theories/Calculator/user_sessions) for an example).
 
@@ -18,7 +18,7 @@ A boilerplate file must be supplied, and the `SESSIONS[]` placeholder indicates 
 Then run the script, passing the theory file, list of user sessions, and boilerplate code:
 
 ```
-python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator calculator_boilerplate.txt
+python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate.txt -f ./PrettyPrinters/Stack/stack_pp_python.txt
 ```
 
 This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added. The final file will be `export.X`, where `X` is the target language file extension, in the output directory specified by `-O` flag.

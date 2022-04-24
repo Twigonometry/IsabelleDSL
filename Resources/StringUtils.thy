@@ -25,14 +25,14 @@ fun string_of_nat :: "nat \<Rightarrow> String.literal"
       else string_of_nat (n div 10) + string_of_digit (n mod 10))"
   declare string_of_nat.simps [simp del]
 
-definition string_of_int :: "int => String.literal"
+fun string_of_int :: "int => String.literal"
   where
     "string_of_int i =
       (if i < 0 then STR ''-'' + string_of_nat (nat (- i)) else string_of_nat (nat i))"
 
-fun string_of_int_list :: "'a list \<Rightarrow> String.literal"
+fun string_of_int_list :: "int list \<Rightarrow> String.literal"
   where
-    "string_of_int_list (x xs) = string_of_int (int x) + string_of_int_list xs" |
+    "string_of_int_list (x # xs) = (string_of_int x) + (string_of_int_list xs)" |
     "string_of_int_list [] = STR ''''"
 
 end

@@ -27,6 +27,7 @@ class isabelleDSL:
         parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode.")
         parser.add_argument("-s", "--sessions_file", help="File with user sessions, separated by newlines.")
         parser.add_argument("-b", "--boilerplate_file", help="File with boilerplate code to insert sessions into.")
+        parser.add_argument("-f", "--pp-func", help="Pretty-printer function to use.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -55,7 +56,16 @@ class isabelleDSL:
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
-            self.temp_theory_file = re.sub(r'^end$', "\n\nexport_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower() + "\n\nend", self.temp_theory_file, flags=re.MULTILINE)
+            with open(self.args.pp_func) as f:
+                self.pp_func_code = f.read()
+
+            pp_func_string = self.pp_func_code + "\n\n"
+
+            export_code_string = "export_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+
+            new_code = pp_func_string + export_code_string + "\n\nend"
+
+            self.temp_theory_file = re.sub(r'^end$', new_code, self.temp_theory_file, flags=re.MULTILINE)
 
             #write to temporary theory file
             with open("/tmp/" + self.thy_name + '.thy', 'w') as f:
@@ -152,6 +162,12 @@ class isabelleDSL:
             self.args.boilerplate_file = input("File with boilerplate code must be supplied! Enter filepath:\n")
 
             if len(self.args.boilerplate_file) < 1:
+                exit()
+
+        if not self.args.pp_func:
+            self.args.pp_func = input("File with pretty-print function code must be supplied! Enter filepath:\n")
+
+            if len(self.args.pp_func) < 1:
                 exit()
 
         with open(self.args.sessions_file) as f:
