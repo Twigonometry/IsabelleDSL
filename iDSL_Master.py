@@ -119,11 +119,9 @@ class isabelleDSL:
         with open(self.hs_file) as f:
             hs_code = f.read()
 
-        hs_code = re.sub(datatype_re, r'newtype \1\n\tderiving Show;', hs_code)
+        hs_code = re.sub(datatype_re, r'newtype \1\n  deriving Show;', hs_code)
 
-        print(re.findall(import_re, hs_code))
-
-        hs_code = re.sub(import_re, r'import Prelude \(\1, Show\);', hs_code, flags=re.MULTILINE)
+        hs_code = re.sub(import_re, r'import Prelude (\1, Show);', hs_code, flags=re.MULTILINE)
 
         with open(self.hs_file, 'w') as f:
             f.write(hs_code)
@@ -173,7 +171,7 @@ class isabelleDSL:
         for s in self.user_sessions:
             test_string = s.replace("----", self.args.test_string)
             res = os.popen('ghci ' + self.hs_file + ' -e "' + test_string + '"').read()
-            print(rest)
+            print(res)
 
     def main(self):
         self.parse_args()
@@ -239,7 +237,7 @@ class isabelleDSL:
         #the result is exported to disk
         self.insert_boilerplate()
 
-        if self.args.auto_test():
+        if self.args.auto_test:
             if not self.args.test_string:
                 self.args.test_string = input("Input string to be formatted with test cases (user sessions). User sessions inserted between -- -- (e.g. \"eval (----)\"):\n")
 
