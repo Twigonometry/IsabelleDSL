@@ -27,8 +27,9 @@ class isabelleDSL:
         parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode.")
         parser.add_argument("-s", "--sessions_file", help="File with user sessions, separated by newlines.")
         parser.add_argument("-b", "--boilerplate_file", help="File with boilerplate code to insert sessions into.")
-        parser.add_argument("-f", "--pp-func", help="Pretty-printer function to use.")
-        parser.add_argument("--auto-test", action="store_true", help="Run tests to automatically discern program correctness based on sessions.")
+        parser.add_argument("-f", "--pp_func", help="Pretty-printer function to use.")
+        parser.add_argument("--auto_test", action="store_true", help="Run tests to automatically discern program correctness based on sessions.")
+        parser.add_argument("--test_string", help="String to insert user sessions into for testing. Sessions will be inserted in between -- -- string.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -62,7 +63,7 @@ class isabelleDSL:
         else:
             #find all functions
             self.find_funcs()
-            
+
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
@@ -109,6 +110,24 @@ class isabelleDSL:
 
         print("Done building")
 
+        #add show instances to datatypes - should work for simple types
+        datatype_re = r'newtype (.*);'
+        import_re = r'import Prelude \(((.|\n)*)\);\nimport qualified Prelude;'
+
+        self.hs_file = '/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs'
+
+        with open(self.hs_file) as f:
+            hs_code = f.read()
+
+        hs_code = re.sub(datatype_re, r'newtype \1\n\tderiving Show;', hs_code)
+
+        print(re.findall(import_re, hs_code))
+
+        hs_code = re.sub(import_re, r'import Prelude \(\1, Show\);', hs_code, flags=re.MULTILINE)
+
+        with open(self.hs_file, 'w') as f:
+            f.write(hs_code)
+
         #run the haskell file
         print("Running Haskell file")
         
@@ -116,7 +135,7 @@ class isabelleDSL:
 
         #run haskell file, passing each session to the pp function
         for s in self.user_sessions:
-            res = os.popen('ghci /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs -e "pp (' + s + ')"').read()
+            res = os.popen('ghci ' + self.hs_file + ' -e "pp (' + s + ')"').read()
             self.sessions_strings.append(res[1:(len(res) - 2)])
 
         #reset working directory
@@ -149,8 +168,12 @@ class isabelleDSL:
             f.write(new_text)
 
     def test_export(self):
-        """run the exported file"""
-        pass
+        """run the exported file with each test case"""
+        print("\n=== Test Cases from Exported Haskell Code ===\n")
+        for s in self.user_sessions:
+            test_string = s.replace("----", self.args.test_string)
+            res = os.popen('ghci ' + self.hs_file + ' -e "' + test_string + '"').read()
+            print(rest)
 
     def main(self):
         self.parse_args()
@@ -215,6 +238,15 @@ class isabelleDSL:
         #insert the exported code into provided boilerplate
         #the result is exported to disk
         self.insert_boilerplate()
+
+        if self.args.auto_test():
+            if not self.args.test_string:
+                self.args.test_string = input("Input string to be formatted with test cases (user sessions). User sessions inserted between -- -- (e.g. \"eval (----)\"):\n")
+
+                if len(self.args.test_string) < 1:
+                    exit()
+
+            self.test_export()
 
 if __name__ == '__main__':
     idsl = isabelleDSL()
