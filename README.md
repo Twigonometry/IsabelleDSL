@@ -18,7 +18,7 @@ A boilerplate file must be supplied, and the `SESSIONS[]` placeholder indicates 
 Then run the script, passing the theory file, list of user sessions, and boilerplate code:
 
 ```
-python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate.txt -f ./PrettyPrinters/Stack/stack_pp_python.txt
+python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt
 ```
 
 This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added. The final file will be `export.X`, where `X` is the target language file extension, in the output directory specified by `-O` flag.
