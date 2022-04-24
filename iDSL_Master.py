@@ -28,6 +28,7 @@ class isabelleDSL:
         parser.add_argument("-s", "--sessions_file", help="File with user sessions, separated by newlines.")
         parser.add_argument("-b", "--boilerplate_file", help="File with boilerplate code to insert sessions into.")
         parser.add_argument("-f", "--pp-func", help="Pretty-printer function to use.")
+        parser.add_argument("--auto-test", action="store_true", help="Run tests to automatically discern program correctness based on sessions.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -47,12 +48,21 @@ class isabelleDSL:
         TODO: can we use export_files here?"""
         pass
 
+    def find_funcs(self):
+        """find all function names in file"""
+
+        func_pat = re.compile(r'fun (\w+)')
+        self.theory_funcs = re.findall(func_pat, self.theory_file)
+
     def create_temp_theory(self):
         """create a temporary theory file with additional export_code commands"""
 
         if not self.args.theory_file:
             pass
         else:
+            #find all functions
+            self.find_funcs()
+            
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
@@ -61,7 +71,9 @@ class isabelleDSL:
 
             pp_func_string = self.pp_func_code + "\n\n"
 
-            export_code_string = "export_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+            funcs = " ".join(self.theory_funcs)
+
+            export_code_string = "export_code pp " + funcs + " in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
             new_code = pp_func_string + export_code_string + "\n\nend"
 
@@ -136,6 +148,10 @@ class isabelleDSL:
         with open(self.args.output_directory + "/export" + self.file_extensions[self.args.target_language], 'w') as f:
             f.write(new_text)
 
+    def test_export(self):
+        """run the exported file"""
+        pass
+
     def main(self):
         self.parse_args()
 
@@ -193,8 +209,11 @@ class isabelleDSL:
         #create a temporary theory file
         self.create_temp_theory()
 
+        #run the file to trigger the export_code process
         self.run_temp_theory()
 
+        #insert the exported code into provided boilerplate
+        #the result is exported to disk
         self.insert_boilerplate()
 
 if __name__ == '__main__':
