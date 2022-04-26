@@ -1,5 +1,5 @@
 theory Calculator
-  imports Main StringUtils
+  imports Main
 begin
 
 (* state is a wrapper for an int
@@ -18,17 +18,17 @@ fun getResult :: "state => int" where
 (* basic arithmetic function definitions
 perform an action on a state *)
 
-fun add :: "int => state => state" where
-"add m (St n) = St (m + n)"
+fun add :: "state => int => state" where
+"add (St n) m = St (m + n)"
 
-fun sub :: "int => state => state" where
-"sub m (St n) = St (m - n)"
+fun sub :: "state => int => state" where
+"sub (St n) m = St (m - n)"
 
-fun mul :: "int => state => state" where
-"mul m (St n) = St (m * n)"
+fun mul :: "state => int => state" where
+"mul (St n) m = St (m * n)"
 
-fun divi :: "int => state => state" where
-"divi m (St n) = St (m div n)"
+fun divi :: "state => int => state" where
+"divi (St n) m = St (m div n)"
 
 (* 
 model a 'session' (series of commands in python program)
@@ -44,9 +44,11 @@ datatype session = GetResult | Clear session | Add int session | Sub int session
 fun eval :: "state => session => state" where
 "eval s GetResult = s" |
 "eval (St i) (Clear ses)  = eval (St 0) ses" |
-"eval (St j) (Add i ses) = eval (add i (St j)) ses" |
-"eval (St j) (Sub i ses) = eval (sub i (St j)) ses" |
-"eval (St j) (Mul i ses) = eval (mul i (St j)) ses" |
-"eval (St j) (Div i ses) = eval (divi i (St j)) ses"
+"eval (St j) (Add i ses) = eval (add (St j) i) ses" |
+"eval (St j) (Sub i ses) = eval (sub (St j) i) ses" |
+"eval (St j) (Mul i ses) = eval (mul (St j) i) ses" |
+"eval (St j) (Div i ses) = eval (divi (St j) i) ses"
+
+value "eval (St 0) (Sub 4 (Add 5 (GetResult)))"
 
 end
