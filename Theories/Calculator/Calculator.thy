@@ -43,12 +43,12 @@ datatype session = GetResult | Clear session | Add int session | Sub int session
 
 fun eval :: "state => session => state" where
 "eval s GetResult = s" |
-"eval (St i) (Clear ses)  = eval (St 0) ses" |
+"eval (St i) (Clear ses) = eval (St 0) ses" |
 "eval (St j) (Add i ses) = eval (add (St j) i) ses" |
 "eval (St j) (Sub i ses) = eval (sub (St j) i) ses" |
 "eval (St j) (Mul i ses) = eval (mul (St j) i) ses" |
 "eval (St j) (Div i ses) = eval (divi (St j) i) ses"
 
-value "eval (St 0) (Sub 4 (Add 5 (GetResult)))"
+value "eval (St 0) (Add 5 (Sub 4 (Div 4 (GetResult))))"
 
 end
