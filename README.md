@@ -23,6 +23,36 @@ python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theo
 
 This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added. The final file will be `export.X`, where `X` is the target language file extension, in the output directory specified by `-O` flag.
 
+If you want to see the results of your code export and compare its execution to that of the logically-equivalent haskell file (created as an intermediate step by `export_code` in Isabelle), use the `--auto_test` flag and provide a `--test_string` (representing a Haskell command to run for each session). For example:
+
+```
+python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt --auto_test --test_string="eval (St (Int_of_integer 0)) (----)"
+
+...
+
+
+```
+
+The text `----` will be replaced by each user session string.
+
+### Building PP Functions
+
+It is worth noting that the order of execution of statements in your Isabelle theory specification must match the order in which it will be interpreted by your target language. For example, in the [stack specification](./Theories/Stack/Stack.thy), the base case is `"'a list" "'a list"` and the `Items` function will be on the 'outside' (left-hand side) of the statement:
+
+```
+Items (Pop (Pop (Push (Int_of_integer 4) (Pop (Push (Int_of_integer 3) (Push (Int_of_integer 2) (Push (Int_of_integer 1) [] [])))))))
+```
+
+However, the Python code will call `items()` on the final result, so the function call will appear on the right-hand side. This means the `pp` function must append function calls to the right-hand side when recursively evaluating sessions:
+
+```
+fun pp :: "session => String.literal" where
+"pp (Items ses) = pp ses + STR ''.items()''" |
+"pp (Push i ses) = pp ses + STR ''.push('' + (string_of_int i) + STR '')''" |
+"pp (Pop ses) = pp ses + STR ''.pop()''" |
+"pp llist rlist = (string_of_int_list llist) + (string_of_int_list rlist)"
+```
+
 ## Notes for Myself - How to Manually Interact with System
 
 ### Building Manually

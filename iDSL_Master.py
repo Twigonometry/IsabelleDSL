@@ -13,6 +13,10 @@ class isabelleDSL:
         "python":".py"
     }
 
+    exec_commands = {
+        "python":"python3 "
+    }
+
     def parse_args(self):
         #setup argparse
         parser = argparse.ArgumentParser(prog="iDSL_Master.py", description="Convert an Isabelle project to a domain-specific language")
@@ -27,7 +31,9 @@ class isabelleDSL:
         parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode.")
         parser.add_argument("-s", "--sessions_file", help="File with user sessions, separated by newlines.")
         parser.add_argument("-b", "--boilerplate_file", help="File with boilerplate code to insert sessions into.")
-        parser.add_argument("-f", "--pp-func", help="Pretty-printer function to use.")
+        parser.add_argument("-f", "--pp_func", help="Pretty-printer function to use.")
+        parser.add_argument("--auto_test", action="store_true", help="Run tests to automatically discern program correctness based on sessions.")
+        parser.add_argument("--test_string", help="String to insert user sessions into for testing. Sessions will be inserted in between -- -- string.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -47,12 +53,21 @@ class isabelleDSL:
         TODO: can we use export_files here?"""
         pass
 
+    def find_funcs(self):
+        """find all function names in file"""
+
+        func_pat = re.compile(r'fun (\w+)')
+        self.theory_funcs = re.findall(func_pat, self.theory_file)
+
     def create_temp_theory(self):
         """create a temporary theory file with additional export_code commands"""
 
         if not self.args.theory_file:
             pass
         else:
+            #find all functions so they can be exported
+            self.find_funcs()
+
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
@@ -61,14 +76,17 @@ class isabelleDSL:
 
             pp_func_string = self.pp_func_code + "\n\n"
 
-            export_code_string = "export_code pp in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+            funcs = " ".join(self.theory_funcs)
+
+            export_code_string = "export_code pp " + funcs + " in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
             new_code = pp_func_string + export_code_string + "\n\nend"
 
             self.temp_theory_file = re.sub(r'^end$', new_code, self.temp_theory_file, flags=re.MULTILINE)
 
             #write to temporary theory file
-            with open("/tmp/" + self.thy_name + '.thy', 'w') as f:
+            self.thy_filepath = "/tmp/" + self.thy_name + '.thy'
+            with open(self.thy_filepath, 'w') as f:
                 f.write(self.temp_theory_file)
 
             if exists(self.orig_path + "/Resources/StringUtils.thy"):
@@ -89,22 +107,47 @@ class isabelleDSL:
                 with open("/tmp/ROOT", 'w') as f:
                     f.write(root_contents)
 
+        if self.args.verbose:
+            print("Modified theory file created at " + self.thy_filepath)
+
     def run_temp_theory(self):
         #build the theory
-        print("Building theory file...")
+        print("\nBuilding theory file...")
         os.chdir('/tmp')
-        os.system('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
+        os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
 
-        print("Done building")
+        print("Done building\n")
+
+        self.hs_file = '/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs'
+
+        with open(self.hs_file) as f:
+            hs_code = f.read()
+
+        #regexes for datatype definitions and imports
+        datatype_re = r'(newtype|data) ((.|\n  \|)*);'
+        import_re = r'import Prelude \(((.|\n)*)\);\nimport qualified Prelude;'
+
+        #add deriving Show statements to all datatypes
+        hs_code = re.sub(datatype_re, r'\1 \2\n  deriving Show;', hs_code, flags=re.MULTILINE)
+
+        #import Prelude.Show
+        hs_code = re.sub(import_re, r'import Prelude (\1, Show);', hs_code, flags=re.MULTILINE)
+
+        #create the haskell file
+        with open(self.hs_file, 'w') as f:
+            f.write(hs_code)
 
         #run the haskell file
-        print("Running Haskell file")
+        if self.args.verbose:
+            print("Running Haskell file (" + self.hs_file + ")")
+        else:
+            print("Running Haskell file")
         
         self.sessions_strings = []
 
         #run haskell file, passing each session to the pp function
         for s in self.user_sessions:
-            res = os.popen('ghci /tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs -e "pp (' + s + ')"').read()
+            res = os.popen('ghci ' + self.hs_file + ' -e "pp (' + s + ')"').read()
             self.sessions_strings.append(res[1:(len(res) - 2)])
 
         #reset working directory
@@ -133,13 +176,36 @@ class isabelleDSL:
         new_text = re.sub(sess_re, sessions_string, self.boilerplate_text, flags=re.MULTILINE)
 
         #write the final exported file
-        with open(self.args.output_directory + "/export" + self.file_extensions[self.args.target_language], 'w') as f:
+        self.export_file_path = self.args.output_directory + "/export" + self.file_extensions[self.args.target_language]
+        with open(self.export_file_path, 'w') as f:
             f.write(new_text)
+
+    def test_export(self):
+        """run the exported file with each test case"""
+        print("\n=== List of User Sessions (Haskell Syntax) ===\n")
+        for s in self.user_sessions:
+            print(s)
+
+        #evaluate haskell file with each user session, inserted into the placeholder command
+        print("\n=== Test Cases from Exported Haskell Code ===\n")
+        for s in self.user_sessions:
+            test_string = self.args.test_string.replace("----", s)
+            cmd = 'ghci ' + self.hs_file + ' -e "' + test_string + '"'
+            res = os.popen(cmd).read()
+            print(res)
+
+        #run the exported file using the syntax for the target language so user can compare results
+        print("\n=== Results of Exported File ===\n")
+        cmd = self.exec_commands[self.args.target_language] +  self.export_file_path
+        res = os.popen(cmd).read()
+        print(res)
 
     def main(self):
         self.parse_args()
 
         self.orig_path = os.getcwd()
+
+        #check required parameters supplied
 
         if not self.args.theory_file and not self.args.project_folder:
             print("One of -t or -p must be supplied!")
@@ -170,9 +236,13 @@ class isabelleDSL:
             if len(self.args.pp_func) < 1:
                 exit()
 
+        print("\n=== Generating DSL ===\n")
+
+        #read user-defined sessions
         with open(self.args.sessions_file) as f:
             self.user_sessions = f.read().splitlines()
 
+        #get theory file name and path
         if self.args.theory_file:
             self.tf_dir, self.tf_name = os.path.split(abspath(self.args.theory_file))
 
@@ -193,9 +263,21 @@ class isabelleDSL:
         #create a temporary theory file
         self.create_temp_theory()
 
+        #run the file to trigger the export_code process
         self.run_temp_theory()
 
+        #insert the exported code into provided boilerplate + export to disk
         self.insert_boilerplate()
+
+        #run testing functions if required
+        if self.args.auto_test:
+            if not self.args.test_string:
+                self.args.test_string = input("Input string to be formatted with test cases (user sessions). User sessions inserted between -- -- (e.g. \"eval (----)\"):\n")
+
+                if len(self.args.test_string) < 1:
+                    exit()
+
+            self.test_export()
 
 if __name__ == '__main__':
     idsl = isabelleDSL()
