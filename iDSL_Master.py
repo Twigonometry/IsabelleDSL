@@ -116,12 +116,14 @@ class isabelleDSL:
         print("\nBuilding theory file...")
         os.chdir('/tmp')
         
+        #store result of build command
         if self.args.verbose:
             res = os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name).read()
             print("Build results:\n\n----\n" + res + "----\n")
         else:
             res = os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name).read()
 
+        #check for errors
         if "FAILED" in res:
             print("Build failed. Try running Isabelle theory file manually, or running with --verbose flag to inspect errors.")
             exit()

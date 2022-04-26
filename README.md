@@ -17,16 +17,16 @@ A boilerplate file must be supplied, and the `SESSIONS[]` placeholder indicates 
 
 Then run the script, passing the theory file, list of user sessions, and boilerplate code:
 
-```
-python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt
+```bash
+$ python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt
 ```
 
 This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added. The final file will be `export.X`, where `X` is the target language file extension, in the output directory specified by `-O` flag.
 
 If you want to see the results of your code export and compare its execution to that of the logically-equivalent haskell file (created as an intermediate step by `export_code` in Isabelle), use the `--auto_test` flag and provide a `--test_string` (representing a Haskell command to run for each session). For example:
 
-```
-python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt --auto_test --test_string="eval (St (Int_of_integer 0)) (----)"
+```bash
+$ python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt --auto_test --test_string="eval (St (Int_of_integer 0)) (----)"
 
 === Generating DSL ===
 
@@ -77,8 +77,8 @@ fun pp :: "session => String.literal" where
 
 Verbose mode (`-v`) shows a fair amount of extra debugging information:
 
-```
-mac@mac-ubuntu:~/Documents/Diss/IsabelleDSL$ python3 iDSL_Master.py -t Theories/Stack/Stack.thy -l c -s ./Theories/Stack/user_sessions -b ./Boilerplate/Stack/stack_boilerplate_c.txt -f ./PrettyPrinters/Stack/stack_pp_c.txt -v
+```bash
+$ python3 iDSL_Master.py -t Theories/Stack/Stack.thy -l c -s ./Theories/Stack/user_sessions -b ./Boilerplate/Stack/stack_boilerplate_c.txt -f ./PrettyPrinters/Stack/stack_pp_c.txt -v
 
 === Generating DSL ===
 
@@ -97,6 +97,8 @@ Stack FAILED
 *** At command "datatype" (line 22 of "/tmp/Stack.thy")
 Unfinished session(s): Stack
 ----
+
+Build failed. Try running Isabelle theory file manually, or running with --verbose flag to inspect errors.
 ```
 
 ## Notes for Myself - How to Manually Interact with System
