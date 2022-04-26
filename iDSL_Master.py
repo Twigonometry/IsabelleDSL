@@ -169,8 +169,11 @@ class isabelleDSL:
         """run the exported file with each test case"""
         print("\n=== Test Cases from Exported Haskell Code ===\n")
         for s in self.user_sessions:
-            test_string = s.replace("----", self.args.test_string)
-            res = os.popen('ghci ' + self.hs_file + ' -e "' + test_string + '"').read()
+            test_string = self.args.test_string.replace("----", s)
+            # print("Test string: "+ test_string)
+            cmd = 'ghci ' + self.hs_file + ' -e "' + test_string + '"'
+            # print("Command: " + cmd)
+            res = os.popen(cmd).read()
             print(res)
 
     def main(self):
