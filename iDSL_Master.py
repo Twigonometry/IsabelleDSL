@@ -111,7 +111,7 @@ class isabelleDSL:
         print("Done building")
 
         #add show instances to datatypes - should work for simple types
-        datatype_re = r'newtype (.*);'
+        datatype_re = r'(newtype|data) ((.|\n  \|)*);'
         import_re = r'import Prelude \(((.|\n)*)\);\nimport qualified Prelude;'
 
         self.hs_file = '/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs'
@@ -119,7 +119,7 @@ class isabelleDSL:
         with open(self.hs_file) as f:
             hs_code = f.read()
 
-        hs_code = re.sub(datatype_re, r'newtype \1\n  deriving Show;', hs_code)
+        hs_code = re.sub(datatype_re, r'\1 \2\n  deriving Show;', hs_code, flags=re.MULTILINE)
 
         hs_code = re.sub(import_re, r'import Prelude (\1, Show);', hs_code, flags=re.MULTILINE)
 
