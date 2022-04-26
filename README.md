@@ -28,14 +28,34 @@ If you want to see the results of your code export and compare its execution to 
 ```
 python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt --auto_test --test_string="eval (St (Int_of_integer 0)) (----)"
 
-...
+=== Generating DSL ===
 
+Existing ROOT file found - copying - please make sure this file contains an export_files statement
 
+Building theory file...
+Done building
+
+Running Haskell file
+Inserting pretty-printed sessions into boilerplate code
+
+=== List of User Sessions (Haskell Syntax) ===
+
+Clear GetResult
+
+=== Test Cases from Exported Haskell Code ===
+
+St (Int_of_integer 0)
+
+=== Results of Exported File ===
+
+0
 ```
 
 The text `----` will be replaced by each user session string.
 
 ### Building PP Functions
+
+You must define a case in your `pp` function for every case in your `session` datatype.
 
 It is worth noting that the order of execution of statements in your Isabelle theory specification must match the order in which it will be interpreted by your target language. For example, in the [stack specification](./Theories/Stack/Stack.thy), the base case is `"'a list" "'a list"` and the `Items` function will be on the 'outside' (left-hand side) of the statement:
 
