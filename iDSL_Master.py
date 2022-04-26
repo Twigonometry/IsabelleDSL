@@ -195,8 +195,11 @@ class isabelleDSL:
             print(res)
 
         #run the exported file using the syntax for the target language so user can compare results
-        print("\n=== Results of Exported File ===\n")
-        cmd = self.exec_commands[self.args.target_language] +  self.export_file_path
+        if self.args.verbose:
+            print("\n=== Results of Exported File (" + self.export_file_path + ") ===\n")
+        else:
+            print("\n=== Results of Exported File ===\n")
+        cmd = self.exec_commands[self.args.target_language] + self.export_file_path
         res = os.popen(cmd).read()
         print(res)
 

@@ -49,6 +49,6 @@ fun eval :: "state => session => state" where
 "eval (St j) (Mul i ses) = eval (mul (St j) i) ses" |
 "eval (St j) (Div i ses) = eval (divi (St j) i) ses"
 
-value "eval (St 0) (Add 5 (Sub 4 (Div 4 (GetResult))))"
+value "eval (St 0) (Add 5 (Sub 4 (GetResult)))"
 
 end
