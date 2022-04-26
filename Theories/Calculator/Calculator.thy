@@ -19,16 +19,16 @@ fun getResult :: "state => int" where
 perform an action on a state *)
 
 fun add :: "state => int => state" where
-"add (St n) m = St (m + n)"
+"add (St m) n = St (m + n)"
 
 fun sub :: "state => int => state" where
-"sub (St n) m = St (m - n)"
+"sub (St m) n = St (m - n)"
 
 fun mul :: "state => int => state" where
-"mul (St n) m = St (m * n)"
+"mul (St m) n = St (m * n)"
 
 fun divi :: "state => int => state" where
-"divi (St n) m = St (m div n)"
+"divi (St m) n = St (m div n)"
 
 (* 
 model a 'session' (series of commands in python program)
