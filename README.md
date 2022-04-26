@@ -73,6 +73,32 @@ fun pp :: "session => String.literal" where
 "pp llist rlist = (string_of_int_list llist) + (string_of_int_list rlist)"
 ```
 
+### Troubleshooting
+
+Verbose mode (`-v`) shows a fair amount of extra debugging information:
+
+```
+mac@mac-ubuntu:~/Documents/Diss/IsabelleDSL$ python3 iDSL_Master.py -t Theories/Stack/Stack.thy -l c -s ./Theories/Stack/user_sessions -b ./Boilerplate/Stack/stack_boilerplate_c.txt -f ./PrettyPrinters/Stack/stack_pp_c.txt -v
+
+=== Generating DSL ===
+
+Existing ROOT file found - copying - please make sure this file contains an export_files statement
+Modified theory file created at /tmp/Stack.thy
+
+Building theory file...
+Build results:
+
+----
+Build started for Isabelle/Stack ...
+Running Stack ...
+Stack FAILED
+(see also /home/mac/.isabelle/Isabelle2021-1/heaps/polyml-5.9_x86_64_32-linux/log/Stack)
+*** Extra type variables on right-hand side: "'a"
+*** At command "datatype" (line 22 of "/tmp/Stack.thy")
+Unfinished session(s): Stack
+----
+```
+
 ## Notes for Myself - How to Manually Interact with System
 
 ### Building Manually

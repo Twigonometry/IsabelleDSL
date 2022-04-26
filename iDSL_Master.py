@@ -10,7 +10,8 @@ import shutil
 class isabelleDSL:
 
     file_extensions = {
-        "python":".py"
+        "python":".py",
+        "c":".c"
     }
 
     exec_commands = {
@@ -114,7 +115,12 @@ class isabelleDSL:
         #build the theory
         print("\nBuilding theory file...")
         os.chdir('/tmp')
-        os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
+        
+        if self.args.verbose:
+            res = os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name).read()
+            print("Build results:\n\n----\n" + res + "----\n")
+        else:
+            os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
 
         print("Done building\n")
 
