@@ -120,9 +120,13 @@ class isabelleDSL:
             res = os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name).read()
             print("Build results:\n\n----\n" + res + "----\n")
         else:
-            os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
+            res = os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name).read()
 
-        print("Done building\n")
+        if "FAILED" in res:
+            print("Build failed. Try running Isabelle theory file manually, or running with --verbose flag to inspect errors.")
+            exit()
+        else:
+            print("Done building\n")
 
         self.hs_file = '/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs'
 
