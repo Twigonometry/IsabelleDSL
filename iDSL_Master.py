@@ -13,6 +13,10 @@ class isabelleDSL:
         "python":".py"
     }
 
+    exec_commands = {
+        "python":"python3 "
+    }
+
     def parse_args(self):
         #setup argparse
         parser = argparse.ArgumentParser(prog="iDSL_Master.py", description="Convert an Isabelle project to a domain-specific language")
@@ -106,7 +110,7 @@ class isabelleDSL:
         #build the theory
         print("Building theory file...")
         os.chdir('/tmp')
-        os.system('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
+        os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
 
         print("Done building")
 
@@ -162,7 +166,8 @@ class isabelleDSL:
         new_text = re.sub(sess_re, sessions_string, self.boilerplate_text, flags=re.MULTILINE)
 
         #write the final exported file
-        with open(self.args.output_directory + "/export" + self.file_extensions[self.args.target_language], 'w') as f:
+        self.export_file_path = self.args.output_directory + "/export" + self.file_extensions[self.args.target_language]
+        with open(self.export_file_path, 'w') as f:
             f.write(new_text)
 
     def test_export(self):
@@ -175,6 +180,11 @@ class isabelleDSL:
             # print("Command: " + cmd)
             res = os.popen(cmd).read()
             print(res)
+
+        print("\n=== Results of Exported File ===\n")
+        cmd = self.exec_commands[self.args.target_language] +  self.export_file_path
+        res = os.popen(cmd).read()
+        print(res)
 
     def main(self):
         self.parse_args()

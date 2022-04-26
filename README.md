@@ -23,6 +23,18 @@ python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theo
 
 This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added. The final file will be `export.X`, where `X` is the target language file extension, in the output directory specified by `-O` flag.
 
+If you want to see the results of your code export and compare its execution to that of the logically-equivalent haskell file (created as an intermediate step by `export_code` in Isabelle), use the `--auto_test` flag and provide a `--test_string` (representing a Haskell command to run for each session). For example:
+
+```
+python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt --auto_test --test_string="eval (St (Int_of_integer 0)) (----)"
+
+...
+
+
+```
+
+The text `----` will be replaced by each user session string.
+
 ## Notes for Myself - How to Manually Interact with System
 
 ### Building Manually
