@@ -8,8 +8,8 @@ class printable =
 (* string functions *)
 
 fun string_of_digit :: "nat => String.literal"
-  where
-    "string_of_digit n =
+where
+  "string_of_digit n =
     (if n = 0 then STR ''0''
     else if n = 1 then STR ''1''
     else if n = 2 then STR ''2''
@@ -26,10 +26,11 @@ begin
   fun string_of_nat :: "nat \<Rightarrow> String.literal"
     where
       "string_of_nat n =
-        (if n < 10 then string_of n
-        else string_of (n div 10) + string_of (n mod 10))"
+        (if n < 10 then string_of_digit n
+        else string_of_nat (n div 10) + string_of_digit (n mod 10))"
 instance apply standard .
 end
+declare string_of_nat.simps [simp del]
 
 instantiation int :: printable
 begin 
