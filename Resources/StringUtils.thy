@@ -21,11 +21,15 @@ where
     else if n = 8 then STR ''8''
     else STR ''9'')"
 
-fun string_of_nat :: "nat \<Rightarrow> String.literal"
-  where
-    "string_of_nat n =
-(if n < 10 then string_of_digit n
-      else string_of_nat (n div 10) + string_of_digit (n mod 10))"
+instantiation nat :: printable
+begin
+  fun string_of_nat :: "nat \<Rightarrow> String.literal"
+    where
+      "string_of_nat n =
+        (if n < 10 then string_of_digit n
+        else string_of_nat (n div 10) + string_of_digit (n mod 10))"
+instance apply standard .
+end
 declare string_of_nat.simps [simp del]
 
 instantiation int :: printable
@@ -33,7 +37,7 @@ begin
   fun string_of_int :: "int => String.literal"
   where
     "string_of_int i =
-      (if i < 0 then STR ''-'' + string_of_nat (nat (- i)) else string_of_nat (nat i))"
+      (if i < 0 then STR ''-'' + string_of (nat (- i)) else string_of (nat i))"
 instance apply standard .
 end
 
