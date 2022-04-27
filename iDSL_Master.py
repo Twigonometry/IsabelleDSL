@@ -15,7 +15,8 @@ class isabelleDSL:
     }
 
     exec_commands = {
-        "python":"python3 "
+        "python":"python3 ",
+        "c":"gcc FILE -O file.out; ./file.out"
     }
 
     def parse_args(self):
