@@ -9,7 +9,7 @@ First, define a theory to export. There are example theories in the `Theories` d
 
 The `pp` function must be of the type `session => String.literal`. The theory file must also define the structure of a `session`, which is essentially a sequence of user actions (function calls) in your DSL. You can then write several different pp functions for different languages.
 
-You must provide a user sessions file, which contains a call to functions in your theory file that is to be pretty printed into code in your target language. Make sure values in the sessions file are cast to their appropriate types, e.g. with `Int_of_integer` (see [here](./Theories/Calculator/user_sessions) for an example).
+You must provide a user sessions file, which contains a call to functions in your theory file that is to be pretty printed into code in your target language. These should be written in Isabelle syntax. If you are using a `session` with a polymorphic type (such as in [Stack](./Theories/Stack/Stack.thy)) you will need to add a helper for Isabelle to identify the type (e.g. `::int` in `Items (Push (1::int) (Init [] []))`). Usually one is enough for Isabelle to infer the types of the rest of the variables. You also need to supply a `--session_type` parameter (e.g. `--session_type int`).
 
 If you do not specify a `ROOT` file, the script will attempt to create one for you. If you do, it must have an `export_files` statement in it, and import `HOL-Library`. See [ROOT.example](./ROOT.example) for an example `ROOT` file structure.
 

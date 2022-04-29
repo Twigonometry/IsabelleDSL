@@ -22,7 +22,4 @@ fun items :: "'a stack \<Rightarrow> 'a list" where
 datatype 'a session = Init "'a list" "'a list" |
   Items "'a session" | Push 'a "'a session" | Pop "'a session"
 
-definition test :: "int session" where mytest [code] :
-"test = Items (Pop (Pop (Push 4 (Pop (Push 3 (Push 2 (Push (1::int) (Init [] []))))))))"
-
 end

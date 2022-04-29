@@ -36,6 +36,7 @@ class isabelleDSL:
         parser.add_argument("-f", "--pp_func", help="Pretty-printer function to use.")
         parser.add_argument("--auto_test", action="store_true", help="Run tests to automatically discern program correctness based on sessions.")
         parser.add_argument("--test_string", help="String to insert user sessions into for testing. Sessions will be inserted in between -- -- string.")
+        parser.add_argument("--session_type", help="If session is polymorphic, e.g. a list, provide a type for user_session strings during auto testing.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -82,7 +83,26 @@ class isabelleDSL:
 
             export_code_string = "export_code pp " + funcs + " in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
-            new_code = pp_func_string + export_code_string + "\n\nend"
+            #generate strings for haskell-equivalent user sessions
+            
+            session_defs = ""
+            
+            if self.args.session_type is None:
+                session_signature = "session"
+            else:
+                session_signature = self.args.session_type + " session"
+                print(session_signature)
+
+            self.usess_defs = []
+
+            #create definitions in the style 'definition test :: "int session" where mytest [code] :'
+            #when exported to haskell this will give us user_session strings in correct syntax
+            for i in range(0, len(self.user_sessions)):
+                session_defs += "\ndefinition usess" + str(i) + " :: \"" + session_signature + "\" where mysess" + str(i) + "[code] :"
+                session_defs += "\n\"usess" + str(i) + " = " + self.user_sessions[i] + "\""
+                self.usess_defs += "usess" + str(i)
+
+            new_code = pp_func_string + session_defs + export_code_string + "\n\nend"
 
             self.temp_theory_file = re.sub(r'^end$', new_code, self.temp_theory_file, flags=re.MULTILINE)
 
