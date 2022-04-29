@@ -10,11 +10,13 @@ import shutil
 class isabelleDSL:
 
     file_extensions = {
-        "python":".py"
+        "python":".py",
+        "c":".c"
     }
 
     exec_commands = {
-        "python":"python3 "
+        "python":"python3 ",
+        "c":"gcc FILE -O file.out; ./file.out"
     }
 
     def parse_args(self):
@@ -34,6 +36,7 @@ class isabelleDSL:
         parser.add_argument("-f", "--pp_func", help="Pretty-printer function to use.")
         parser.add_argument("--auto_test", action="store_true", help="Run tests to automatically discern program correctness based on sessions.")
         parser.add_argument("--test_string", help="String to insert user sessions into for testing. Sessions will be inserted in between -- -- string.")
+        parser.add_argument("--session_type", help="If session is polymorphic, e.g. a list, provide a type for user_session strings during auto testing.")
 
         #parse arguments
         self.args = parser.parse_args()
@@ -71,16 +74,42 @@ class isabelleDSL:
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
+            #copy original code
+
             with open(self.args.pp_func) as f:
                 self.pp_func_code = f.read()
+
+            #create string of list of functions
 
             pp_func_string = self.pp_func_code + "\n\n"
 
             funcs = " ".join(self.theory_funcs)
 
-            export_code_string = "export_code pp " + funcs + " in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+            #generate strings for haskell-equivalent user sessions
+            
+            session_defs = ""
+            
+            if self.args.session_type is None:
+                session_signature = "session"
+            else:
+                session_signature = self.args.session_type + " session"
 
-            new_code = pp_func_string + export_code_string + "\n\nend"
+            self.usess_defs = []
+            self.haskell_defs = []
+
+            #create definitions in the style 'definition test :: "int session" where mytest [code] :'
+            #when exported to haskell this will give us user_session strings in correct syntax
+            for i in range(0, len(self.user_sessions)):
+                session_defs += "\ndefinition usess" + str(i) + " :: \"" + session_signature + "\" where mysess" + str(i) + "[code] :"
+                session_defs += "\n\"usess" + str(i) + " = " + self.user_sessions[i] + "\""
+                self.usess_defs.append("usess" + str(i))
+                self.haskell_defs.append("{} =".format("usess" + str(i)))
+
+            session_defs += "\n\n"
+
+            export_code_string = "export_code pp " + funcs + " " + " ".join(self.usess_defs) + " in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
+
+            new_code = pp_func_string + session_defs + export_code_string + "\n\nend"
 
             self.temp_theory_file = re.sub(r'^end$', new_code, self.temp_theory_file, flags=re.MULTILINE)
 
@@ -114,9 +143,20 @@ class isabelleDSL:
         #build the theory
         print("\nBuilding theory file...")
         os.chdir('/tmp')
-        os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name)
+        
+        #store result of build command
+        if self.args.verbose:
+            res = os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name).read()
+            print("Build results:\n\n----\n" + res + "----\n")
+        else:
+            res = os.popen('isabelle export -d . -x "*:**.hs" ' + self.thy_name).read()
 
-        print("Done building\n")
+        #check for errors
+        if "FAILED" in res:
+            print("Build failed. Try running Isabelle theory file manually, or running with --verbose flag to inspect errors.")
+            exit()
+        else:
+            print("Done building\n")
 
         self.hs_file = '/tmp/export/' + self.args.module_name + '.' + self.args.module_name + '/code/' + self.args.module_name.lower() + '/' + self.args.module_name + '.hs'
 
@@ -137,6 +177,14 @@ class isabelleDSL:
         with open(self.hs_file, 'w') as f:
             f.write(hs_code)
 
+        #find all haskell-translated user sessions
+        self.haskell_sessions = []
+
+        self.haskell_sessions = re.findall(r'usess[0-9]* =([^;]*);', hs_code, flags=re.MULTILINE)
+
+        for i in range(0, len(self.haskell_sessions)):
+            self.haskell_sessions[i] = re.sub(r'\n( )*', ' ', self.haskell_sessions[i])
+
         #run the haskell file
         if self.args.verbose:
             print("Running Haskell file (" + self.hs_file + ")")
@@ -146,8 +194,11 @@ class isabelleDSL:
         self.sessions_strings = []
 
         #run haskell file, passing each session to the pp function
-        for s in self.user_sessions:
-            res = os.popen('ghci ' + self.hs_file + ' -e "pp (' + s + ')"').read()
+        for s in self.haskell_sessions:
+            cmd = 'ghci ' + self.hs_file + ' -e "pp (' + s + ')"'
+            if self.args.verbose:
+                print("System Command: " + cmd)
+            res = os.popen(cmd).read()
             self.sessions_strings.append(res[1:(len(res) - 2)])
 
         #reset working directory
@@ -182,13 +233,19 @@ class isabelleDSL:
 
     def test_export(self):
         """run the exported file with each test case"""
-        print("\n=== List of User Sessions (Haskell Syntax) ===\n")
-        for s in self.user_sessions:
-            print(s)
+
+        if not self.args.verbose:
+            print("\n=== List of User Sessions===\n")
+            for s in self.user_sessions:
+                print(s)
+        else:
+            print("\n=== List of User Sessions -> Haskell Syntax ===\n")
+            for s, h in zip(self.user_sessions, self.haskell_sessions):
+                print(s + " -> " + h)
 
         #evaluate haskell file with each user session, inserted into the placeholder command
         print("\n=== Test Cases from Exported Haskell Code ===\n")
-        for s in self.user_sessions:
+        for s in self.haskell_sessions:
             test_string = self.args.test_string.replace("----", s)
             cmd = 'ghci ' + self.hs_file + ' -e "' + test_string + '"'
             res = os.popen(cmd).read()
