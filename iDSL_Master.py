@@ -95,6 +95,7 @@ class isabelleDSL:
                 session_signature = self.args.session_type + " session"
 
             self.usess_defs = []
+            self.haskell_defs = []
 
             #create definitions in the style 'definition test :: "int session" where mytest [code] :'
             #when exported to haskell this will give us user_session strings in correct syntax
@@ -102,6 +103,7 @@ class isabelleDSL:
                 session_defs += "\ndefinition usess" + str(i) + " :: \"" + session_signature + "\" where mysess" + str(i) + "[code] :"
                 session_defs += "\n\"usess" + str(i) + " = " + self.user_sessions[i] + "\""
                 self.usess_defs.append("usess" + str(i))
+                self.haskell_defs.append("{} =".format("usess" + str(i)))
 
             session_defs += "\n\n"
 
@@ -175,6 +177,17 @@ class isabelleDSL:
         with open(self.hs_file, 'w') as f:
             f.write(hs_code)
 
+        #find all haskell-translated user sessions
+        self.haskell_sessions = []
+
+        self.haskell_sessions = re.findall(r'usess[0-9]* =([^;]*);', hs_code, flags=re.MULTILINE)
+        print(self.haskell_sessions)
+
+        for s in self.haskell_sessions:
+            print(s)
+            s = re.sub(r'\n( )*', '', s)
+            print(s)
+
         #run the haskell file
         if self.args.verbose:
             print("Running Haskell file (" + self.hs_file + ")")
@@ -220,9 +233,15 @@ class isabelleDSL:
 
     def test_export(self):
         """run the exported file with each test case"""
-        print("\n=== List of User Sessions (Haskell Syntax) ===\n")
-        for s in self.user_sessions:
-            print(s)
+
+        if not self.args.verbose:
+            print("\n=== List of User Sessions===\n")
+            for s in self.user_sessions:
+                print(s)
+        else:
+            print("\n=== List of User Sessions -> Haskell Syntax ===\n")
+            for s, h in zip(self.user_sessions, self.haskell_sessions):
+                print(s + " -> " + h)
 
         #evaluate haskell file with each user session, inserted into the placeholder command
         print("\n=== Test Cases from Exported Haskell Code ===\n")
