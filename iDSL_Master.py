@@ -74,14 +74,16 @@ class isabelleDSL:
             #add code to theory file to create intermediary Haskell code
             self.temp_theory_file = self.theory_file + "\n\n"
 
+            #copy original code
+
             with open(self.args.pp_func) as f:
                 self.pp_func_code = f.read()
+
+            #create string of list of functions
 
             pp_func_string = self.pp_func_code + "\n\n"
 
             funcs = " ".join(self.theory_funcs)
-
-            export_code_string = "export_code pp " + funcs + " in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
             #generate strings for haskell-equivalent user sessions
             
@@ -91,7 +93,6 @@ class isabelleDSL:
                 session_signature = "session"
             else:
                 session_signature = self.args.session_type + " session"
-                print(session_signature)
 
             self.usess_defs = []
 
@@ -100,7 +101,11 @@ class isabelleDSL:
             for i in range(0, len(self.user_sessions)):
                 session_defs += "\ndefinition usess" + str(i) + " :: \"" + session_signature + "\" where mysess" + str(i) + "[code] :"
                 session_defs += "\n\"usess" + str(i) + " = " + self.user_sessions[i] + "\""
-                self.usess_defs += "usess" + str(i)
+                self.usess_defs.append("usess" + str(i))
+
+            session_defs += "\n\n"
+
+            export_code_string = "export_code pp " + funcs + " " + " ".join(self.usess_defs) + " in Haskell module_name " + self.args.module_name + " file_prefix " + self.args.module_name.lower()
 
             new_code = pp_func_string + session_defs + export_code_string + "\n\nend"
 
