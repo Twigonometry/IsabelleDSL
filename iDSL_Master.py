@@ -181,12 +181,9 @@ class isabelleDSL:
         self.haskell_sessions = []
 
         self.haskell_sessions = re.findall(r'usess[0-9]* =([^;]*);', hs_code, flags=re.MULTILINE)
-        print(self.haskell_sessions)
 
-        for s in self.haskell_sessions:
-            print(s)
-            s = re.sub(r'\n( )*', '', s)
-            print(s)
+        for i in range(0, len(self.haskell_sessions)):
+            self.haskell_sessions[i] = re.sub(r'\n( )*', ' ', self.haskell_sessions[i])
 
         #run the haskell file
         if self.args.verbose:
@@ -197,8 +194,11 @@ class isabelleDSL:
         self.sessions_strings = []
 
         #run haskell file, passing each session to the pp function
-        for s in self.user_sessions:
-            res = os.popen('ghci ' + self.hs_file + ' -e "pp (' + s + ')"').read()
+        for s in self.haskell_sessions:
+            cmd = 'ghci ' + self.hs_file + ' -e "pp (' + s + ')"'
+            if self.args.verbose:
+                print("System Command: " + cmd)
+            res = os.popen(cmd).read()
             self.sessions_strings.append(res[1:(len(res) - 2)])
 
         #reset working directory
@@ -245,7 +245,7 @@ class isabelleDSL:
 
         #evaluate haskell file with each user session, inserted into the placeholder command
         print("\n=== Test Cases from Exported Haskell Code ===\n")
-        for s in self.user_sessions:
+        for s in self.haskell_sessions:
             test_string = self.args.test_string.replace("----", s)
             cmd = 'ghci ' + self.hs_file + ' -e "' + test_string + '"'
             res = os.popen(cmd).read()
