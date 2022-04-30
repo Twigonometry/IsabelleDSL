@@ -13,7 +13,7 @@ You must provide a user sessions file, which contains a call to functions in you
 
 If you do not specify a `ROOT` file, the script will attempt to create one for you. If you do, it must have an `export_files` statement in it, and import `HOL-Library`. See [ROOT.example](./ROOT.example) for an example `ROOT` file structure.
 
-A boilerplate file must be supplied, and the `SESSIONS[]` placeholder indicates where all sessions will be inserted. Within this, any string can be inserted - within the string, the string `{session}` will be replaced by each pretty-printed user session.
+A boilerplate file must be supplied, and the `SESSIONS(your code here)SESSIONS` placeholder indicates where all sessions will be inserted. Within this, any string can be inserted - within the string, the string `{session}` will be replaced by each pretty-printed user session.
 
 Then run the script, passing the theory file, list of user sessions, and boilerplate code:
 

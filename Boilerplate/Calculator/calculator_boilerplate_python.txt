@@ -26,4 +26,4 @@ class Calculator:
         self.input = 0
 
 c = Calculator()
-SESSIONS[print(c[session])]
+SESSIONSprint(c[session])SESSIONS

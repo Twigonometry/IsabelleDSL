@@ -19,6 +19,13 @@ class isabelleDSL:
         "c":"gcc FILE -O file.out; ./file.out"
     }
 
+    #isabelle is awkward about some characters in string definitions and as far as I can tell has no way to escape characters
+    #here we can store common ones to translate later
+    string_mappings = {
+        "SINGLEQUOTE":"'",
+        "RIGHTARROW":"=>"
+    }
+
     def parse_args(self):
         #setup argparse
         parser = argparse.ArgumentParser(prog="iDSL_Master.py", description="Convert an Isabelle project to a domain-specific language")
@@ -50,6 +57,15 @@ class isabelleDSL:
         else:
             with open(self.args.theory_file, 'r') as f:
                 self.theory_file = f.read()
+
+                #add the StringUtils import if not included
+                #TODO: this is a weak check - they could reference StringUtils outside the import somewhere
+                #this problem is fixed if we add the 'create theory file' mode
+                # we also remind the user to add this
+                if "StringUtils" not in self.theory_file:
+                    if self.args.verbose:
+                        print("StringUtils import not detected. Adding it.")
+                    self.theory_file = self.theory_file.replace("imports Main", "imports Main StringUtils")
 
     def create_root_file(self):
         """create a root file"""
@@ -229,7 +245,7 @@ class isabelleDSL:
             self.boilerplate_text = f.read()
 
         #find the SESSIONS[] string in the boilerplate and extract the sessions placeholder contents inside it
-        sess_re = r'SESSIONS\[((.|\n)*)\]'
+        sess_re = r'SESSIONS((.|\n)*)SESSIONS'
         sessions_placeholder = re.search(sess_re, self.boilerplate_text, flags=re.MULTILINE).group(1)
 
         sessions_string = ""

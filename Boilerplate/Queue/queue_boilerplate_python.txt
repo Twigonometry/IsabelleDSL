@@ -15,7 +15,7 @@ class Queue:
             self.queue = self.queue[1:]
             return self
 
-SESSIONS[
+SESSIONS
 q = Queue()
 q[session]
-]
+SESSIONS

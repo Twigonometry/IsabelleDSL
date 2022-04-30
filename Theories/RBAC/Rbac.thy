@@ -2,9 +2,9 @@ theory Rbac
 imports Main
 begin
 
-datatype userID = UserID string
-datatype paperID = PaperID string
-datatype confID = ConfID string
+datatype userID = UserID String.literal
+datatype paperID = PaperID String.literal
+datatype confID = ConfID String.literal
 
 definition "emptyStr = STR ''''"
 
@@ -27,6 +27,16 @@ record state =
   user :: "userID \<Rightarrow> user"
   roles :: "confID \<Rightarrow> userID \<Rightarrow> role list"
 
+definition istate :: state
+where
+"istate \<equiv>
+\<lparr>
+userIDs = [],
+pass = (\<lambda> uID. emptyPass),
+user = (\<lambda> uID. emptyUser),
+roles = (\<lambda> confID uID. []),
+\<rparr>"
+
 (* Create new user (user) in the system: *)
 (* if given user ID already taken, generate a fresh one *)
 definition createUser ::  "state \<Rightarrow> userID \<Rightarrow> password \<Rightarrow> String.literal \<Rightarrow> String.literal \<Rightarrow> String.literal \<Rightarrow> state"
@@ -37,3 +47,13 @@ where
  s \<lparr>userIDs := uID # uIDs,
     user := (user s) (uID := User name info email),
     pass := (pass s) (uID := p)\<rparr>"
+
+datatype userCreation = CreateUser state userID password String.literal String.literal String.literal userCreation | Commit
+
+fun pp_uc :: "userCreation \<Rightarrow> String.literal" where
+"pp_uc ((CreateUser s (UserID uid) (Password p) name info email) uc) = STR ''SINGLEQUOTEuserIDSINGLEQUOTE RIGHTARROW '' + uid + STR '', SINGLEQUOTEpasswordSINGLEQUOTE RIGHTARROW '' + p + STR '', SINGLEQUOTEnameSINGLEQUOTE RIGHTARROW '' + name + STR '', SINGLEQUOTEinfoSINGLEQUOTE RIGHTARROW '' + info + STR '', SINGLEQUOTEinfoSINGLEQUOTE RIGHTARROW '' + email + STR '','' + pp_uc uc" |
+"pp_uc Commit = STR ''''"
+
+value "pp_uc ((CreateUser istate (UserID STR ''1'') (Password STR ''password'') STR ''Mac'' STR ''Student'' STR ''mac@example.com'') (Commit))"
+
+end

@@ -63,10 +63,10 @@ void items() {
 }
 
 int main() {
-   SESSIONS[
-    [session]
-    top = -1;
-    ]
+   SESSIONS
+   [session]
+   top = -1;
+   SESSIONS
    
    return 0;
 }
