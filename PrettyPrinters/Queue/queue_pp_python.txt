@@ -1,0 +1,5 @@
+fun pp :: "('a::printable) session => String.literal" where
+"pp (Items ses) = pp ses + STR ''.items()''" |
+"pp (Enqueue i ses) = pp ses + STR ''.push('' + (string_of i) + STR '')''" |
+"pp (Dequeue ses) = pp ses + STR ''.pop()''" |
+"pp (Init llist rlist) = (string_of llist) + (string_of rlist)"
