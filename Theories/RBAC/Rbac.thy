@@ -26,3 +26,14 @@ record state =
   pass :: "userID \<Rightarrow> password"
   user :: "userID \<Rightarrow> user"
   roles :: "confID \<Rightarrow> userID \<Rightarrow> role list"
+
+(* Create new user (user) in the system: *)
+(* if given user ID already taken, generate a fresh one *)
+definition createUser ::  "state \<Rightarrow> userID \<Rightarrow> password \<Rightarrow> String.literal \<Rightarrow> String.literal \<Rightarrow> String.literal \<Rightarrow> state"
+where
+"createUser s uID p name info email \<equiv>
+ let uIDs = userIDs s
+ in
+ s \<lparr>userIDs := uID # uIDs,
+    user := (user s) (uID := User name info email),
+    pass := (pass s) (uID := p)\<rparr>"
