@@ -154,6 +154,8 @@ class isabelleDSL:
         #check for errors
         if "FAILED" in res:
             print("Build failed. Try running Isabelle theory file manually, or running with --verbose flag to inspect errors.")
+            if "Bad number of arguments for type constructor" in res:
+                print("HINT: Did you forget to supply the --session_type parameter? This is needed if your session type is polymorphic")
             exit()
         else:
             print("Done building\n")
