@@ -1,0 +1,5 @@
+fun pp :: "session => String.literal" where
+"pp (Items ses) = pp ses + STR ''\nitems();''" |
+"pp (Push i ses) = pp ses + STR ''\npush('' + (string_of_int i) + STR '')''" |
+"pp (Pop ses) = pp ses + STR ''\npop();''" |
+"pp llist rlist = STR ''''" (* in C boilerplate stack always begins empty *)

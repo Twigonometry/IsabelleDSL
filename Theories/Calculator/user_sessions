@@ -1,2 +1,4 @@
 Clear GetResult
-Add (Int_of_integer 5) (Sub (Int_of_integer 4) (Div (Int_of_integer 4) (GetResult)))
+Add 5 (Sub 4 (Div 4 (GetResult)))
+Add 10 (Sub 2 (Div 2 (GetResult)))
+Add 1 (Sub 3 (GetResult))

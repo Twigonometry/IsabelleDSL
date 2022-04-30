@@ -1,0 +1,3 @@
+Items (Dequeue (Enqueue 2 (Enqueue (1::int) (Init [] []))))
+Items (Dequeue (Enqueue (1::int) (Dequeue (Init [] []))))
+Items (Enqueue 4 (Enqueue 3 (Dequeue (Enqueue 2 (Enqueue (1::int) (Init [] []))))))

@@ -1,1 +1,1 @@
-Items (Pop (Pop (Push (Int_of_integer 4) (Pop (Push (Int_of_integer 3) (Push (Int_of_integer 2) (Push (Int_of_integer 1) [] [])))))))
+Items (Pop (Pop (Push 4 (Pop (Push 3 (Push 2 (Push (1::int) (Init [] []))))))))

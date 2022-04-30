@@ -9,7 +9,7 @@ First, define a theory to export. There are example theories in the `Theories` d
 
 The `pp` function must be of the type `session => String.literal`. The theory file must also define the structure of a `session`, which is essentially a sequence of user actions (function calls) in your DSL. You can then write several different pp functions for different languages.
 
-You must provide a user sessions file, which contains a call to functions in your theory file that is to be pretty printed into code in your target language. Make sure values in the sessions file are cast to their appropriate types, e.g. with `Int_of_integer` (see [here](./Theories/Calculator/user_sessions) for an example).
+You must provide a user sessions file, which contains a call to functions in your theory file that is to be pretty printed into code in your target language. These should be written in Isabelle syntax. If you are using a `session` with a polymorphic type (such as in [Stack](./Theories/Stack/Stack.thy)) you will need to add a helper for Isabelle to identify the type (e.g. `::int` in `Items (Push (1::int) (Init [] []))`). Usually one is enough for Isabelle to infer the types of the rest of the variables. You also need to supply a `--session_type` parameter (e.g. `--session_type int`).
 
 If you do not specify a `ROOT` file, the script will attempt to create one for you. If you do, it must have an `export_files` statement in it, and import `HOL-Library`. See [ROOT.example](./ROOT.example) for an example `ROOT` file structure.
 
@@ -17,16 +17,18 @@ A boilerplate file must be supplied, and the `SESSIONS[]` placeholder indicates 
 
 Then run the script, passing the theory file, list of user sessions, and boilerplate code:
 
-```
-python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt
+```bash
+$ python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt
 ```
 
 This will create a temporary theory file and ROOT file, if needed, in `/tmp`. It will then build the theory, extract the exported Haskell code, and run the pretty-printing functions within the Haskell file to print the specified session. Boilerplate code will then be added. The final file will be `export.X`, where `X` is the target language file extension, in the output directory specified by `-O` flag.
 
+### Testing the Export
+
 If you want to see the results of your code export and compare its execution to that of the logically-equivalent haskell file (created as an intermediate step by `export_code` in Isabelle), use the `--auto_test` flag and provide a `--test_string` (representing a Haskell command to run for each session). For example:
 
-```
-python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt --auto_test --test_string="eval (St (Int_of_integer 0)) (----)"
+```bash
+$ python3 iDSL_Master.py -t Theories/Calculator/Calculator.thy -l python -s ./Theories/Calculator/user_sessions -b ./Boilerplate/Calculator/calculator_boilerplate_python.txt -f ./PrettyPrinters/Calculator/calculator_pp_python.txt --auto_test --test_string="eval (St (Int_of_integer 0)) (----)"
 
 === Generating DSL ===
 
@@ -71,6 +73,34 @@ fun pp :: "session => String.literal" where
 "pp (Push i ses) = pp ses + STR ''.push('' + (string_of_int i) + STR '')''" |
 "pp (Pop ses) = pp ses + STR ''.pop()''" |
 "pp llist rlist = (string_of_int_list llist) + (string_of_int_list rlist)"
+```
+
+### Troubleshooting
+
+Verbose mode (`-v`) shows a fair amount of extra debugging information:
+
+```bash
+$ python3 iDSL_Master.py -t Theories/Stack/Stack.thy -l c -s ./Theories/Stack/user_sessions -b ./Boilerplate/Stack/stack_boilerplate_c.txt -f ./PrettyPrinters/Stack/stack_pp_c.txt -v
+
+=== Generating DSL ===
+
+Existing ROOT file found - copying - please make sure this file contains an export_files statement
+Modified theory file created at /tmp/Stack.thy
+
+Building theory file...
+Build results:
+
+----
+Build started for Isabelle/Stack ...
+Running Stack ...
+Stack FAILED
+(see also /home/mac/.isabelle/Isabelle2021-1/heaps/polyml-5.9_x86_64_32-linux/log/Stack)
+*** Extra type variables on right-hand side: "'a"
+*** At command "datatype" (line 22 of "/tmp/Stack.thy")
+Unfinished session(s): Stack
+----
+
+Build failed. Try running Isabelle theory file manually, or running with --verbose flag to inspect errors.
 ```
 
 ## Notes for Myself - How to Manually Interact with System

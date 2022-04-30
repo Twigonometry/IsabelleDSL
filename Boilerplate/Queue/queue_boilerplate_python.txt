@@ -1,0 +1,21 @@
+class Queue:
+    empty = []
+
+    def __init__(self) -> None:
+        self.queue = []
+
+    def enqueue(self, i):
+        self.queue.append(i)
+        return self
+
+    def dequeue(self):
+        if self.queue == self.empty:
+            return self
+        else:
+            self.queue = self.queue[1:]
+            return self
+
+SESSIONS[
+q = Queue()
+q[session]
+]

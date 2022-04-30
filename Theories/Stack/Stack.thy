@@ -7,7 +7,7 @@ datatype 'a stack = AStack "'a list" "'a list"
 definition empty :: "'a stack" where
 "empty = AStack [] []"
 
-primrec push :: "'a \<Rightarrow> 'a stack \<Rightarrow> 'a stack" where
+fun push :: "'a \<Rightarrow> 'a stack \<Rightarrow> 'a stack" where
 "push x (AStack xs ys) = AStack (x # xs) ys"
 
 fun pop :: "'a stack \<Rightarrow> 'a stack" where
@@ -19,6 +19,7 @@ fun pop :: "'a stack \<Rightarrow> 'a stack" where
 fun items :: "'a stack \<Rightarrow> 'a list" where
 "items (AStack xs ys) = xs @ ys"
 
-datatype session = Items session | Push int session | Pop session | "'a list" "'a list"
+datatype 'a session = Init "'a list" "'a list" |
+  Items "'a session" | Push 'a "'a session" | Pop "'a session"
 
 end
