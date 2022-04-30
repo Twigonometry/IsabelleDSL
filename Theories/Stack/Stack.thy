@@ -1,5 +1,5 @@
 theory Stack
-  imports Main StringUtils
+  imports Main
 begin
 
 datatype 'a stack = AStack "'a list" "'a list"
@@ -21,5 +21,8 @@ fun items :: "'a stack \<Rightarrow> 'a list" where
 
 datatype 'a session = Init "'a list" "'a list" |
   Items "'a session" | Push 'a "'a session" | Pop "'a session"
+
+theorem pop_push [simp]: "items (pop (push x (empty))) = items (empty)"
+  by (simp add: Stack.empty_def)
 
 end
