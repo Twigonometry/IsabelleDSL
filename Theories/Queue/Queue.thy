@@ -19,7 +19,7 @@ fun dequeue :: "'a queue \<Rightarrow> 'a option \<times> 'a queue" where
 fun items :: "'a queue \<Rightarrow> 'a list" where
 "items (AQueue xs ys) = xs @ ys"
 
-datatype 'a queue = Init "'a list" "'a list" |
+datatype session = Init "'a list" "'a list" |
   Items "'a session" | Enqueue 'a "' a session" | Dequeue "'a session"
 
 end
