@@ -1,0 +1,13 @@
+theory calculator_pp_python
+imports "../../Theories/Calculator/Calculator"
+begin
+
+fun pp :: "session => String.literal" where 
+"pp GetResult = STR ''.getResult()''" |
+"pp (Clear ses) = STR ''.clear()'' + pp ses" |
+"pp (Add i ses) = STR ''.add('' + (string_of i) + STR '')'' + pp ses" |
+"pp (Sub i ses) = STR ''.sub('' + (string_of i) + STR '')'' + pp ses" |
+"pp (Mul i ses) = STR ''.mul('' + (string_of i) + STR '')'' + pp ses" |
+"pp (Div i ses) = STR ''.div('' + (string_of i) + STR '')'' + pp ses"
+
+end 

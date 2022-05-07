@@ -52,17 +52,9 @@ class isabelleDSL:
                 self.theory_file = f.read()
 
     def create_root_file(self):
-        """create a root file"""
-        with open('./Resources/ROOT.template') as f:
-            root = f.read()
-
-        root = root.replace("TheoryName", self.thy_name)
-
-        with open('/tmp/ROOT', 'w') as f:
-            f.write(root)
-
-        if self.args.verbose:
-            print("ROOT file created at /tmp/ROOT")
+        """create a root file
+        TODO: can we use export_files here?"""
+        pass
 
     def find_funcs(self):
         """find all function names in file"""
@@ -134,20 +126,15 @@ class isabelleDSL:
 
             #TODO: check if ROOT file contains an export-files command, if not exit/print warning
             if exists(self.tf_dir + "/ROOT"):
-                print("Using existing ROOT file")
-
-                with open(self.tf_dir + "/ROOT") as f:
-                    root_contents = f.read()
-                    if "export_files" not in root_contents:
-                        print("ROOT file does not contain an export_files command - please add one - see ROOT.example for guidance")
-                        exit()
-
+                print("Existing ROOT file found - copying - please make sure this file contains an export_files statement")
                 shutil.copy(self.tf_dir + "/ROOT", "/tmp/ROOT")
             else:
                 #if no existing ROOT file, create one from template
-                print("No ROOT file found - creating one")
-                
-                self.create_root_file()
+                with open('./Resources/ROOT.template') as f:
+                    root_contents = f.read().replace('TheoryName', self.thy_name)
+
+                with open("/tmp/ROOT", 'w') as f:
+                    f.write(root_contents)
 
         if self.args.verbose:
             print("Modified theory file created at " + self.thy_filepath)

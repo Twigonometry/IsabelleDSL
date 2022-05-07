@@ -1,5 +1,5 @@
 theory Calculator
-  imports Main StringUtils
+  imports Main "../../Resources/StringUtils" 
 begin
 
 (* state is a wrapper for an int
