@@ -11,7 +11,9 @@ class isabelleDSL:
 
     file_extensions = {
         "python":".py",
-        "c":".c"
+        "c":".c",
+        "laravel":".php",
+        "php":".php"
     }
 
     exec_commands = {

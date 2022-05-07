@@ -50,10 +50,4 @@ where
 
 datatype userCreation = CreateUser state userID password String.literal String.literal String.literal userCreation | Commit
 
-fun pp_uc :: "userCreation \<Rightarrow> String.literal" where
-"pp_uc ((CreateUser s (UserID uid) (Password p) name info email) uc) = STR ''SINGLEQUOTEuserIDSINGLEQUOTE RIGHTARROW '' + uid + STR '', SINGLEQUOTEpasswordSINGLEQUOTE RIGHTARROW '' + p + STR '', SINGLEQUOTEnameSINGLEQUOTE RIGHTARROW '' + name + STR '', SINGLEQUOTEinfoSINGLEQUOTE RIGHTARROW '' + info + STR '', SINGLEQUOTEinfoSINGLEQUOTE RIGHTARROW '' + email + STR '','' + pp_uc uc" |
-"pp_uc Commit = STR ''''"
-
-value "pp_uc ((CreateUser istate (UserID STR ''1'') (Password STR ''password'') STR ''Mac'' STR ''Student'' STR ''mac@example.com'') (Commit))"
-
 end

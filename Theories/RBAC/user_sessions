@@ -1,0 +1,1 @@
+(CreateUser istate (UserID STR ''1'') (Password STR ''password'') STR ''Mac'' STR ''Student'' STR ''mac@example.com'') (Commit)
