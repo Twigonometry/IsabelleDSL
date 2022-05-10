@@ -23,7 +23,7 @@ class Calculator:
         return self.result
     
     def __init__(self):
-        self.input = 0
+        self.result = 0
 
-c = Calculator()
-SESSIONS[print(c[session])]
+SESSIONS[c = Calculator()
+print(c[session])]
