@@ -5,7 +5,7 @@ import os
 from os.path import exists, abspath
 import shutil
 
-# IsabelleDSL Master Script
+# IsabelleDSL Central Script
 
 class isabelleDSL:
 
@@ -21,7 +21,7 @@ class isabelleDSL:
 
     def parse_args(self):
         #setup argparse
-        parser = argparse.ArgumentParser(prog="iDSL_Master.py", description="Convert an Isabelle project to a domain-specific language")
+        parser = argparse.ArgumentParser(prog="iDSL.py", description="Convert an Isabelle project to a domain-specific language")
         
         #optional flags
         #must have one of -t (for a .thy file) or -p (for a project folder)
