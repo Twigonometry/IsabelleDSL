@@ -1,5 +1,5 @@
 theory Stack
-  imports Main "../../Resources/StringUtils"
+  imports Main StringUtils
 begin
 
 datatype 'a stack = AStack "'a list" "'a list"
