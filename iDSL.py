@@ -67,8 +67,8 @@ class isabelleDSL:
     def find_funcs(self):
         """find all function names in file"""
 
-        func_pat = re.compile(r'fun (\w+)')
-        self.theory_funcs = re.findall(func_pat, self.theory_file)
+        func_pat = re.compile(r'(fun|primrec) (\w+)')
+        self.theory_funcs = [i[1] for i in re.findall(func_pat, self.theory_file)]
 
     def create_temp_theory(self):
         """create a temporary theory file with additional export_code commands"""
